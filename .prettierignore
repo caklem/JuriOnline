@@ -1,0 +1,11 @@
+# Ignore Blade templates to prevent formatting issues
+*.blade.php
+resources/views/**/*.blade.php
+
+# Ignore vendor files
+vendor/
+node_modules/
+
+# Ignore storage
+storage/
+bootstrap/cache/
