@@ -13,7 +13,7 @@ class EventFormController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -26,12 +26,15 @@ class EventFormController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
         $templates = EventForm::getTemplates();
-        $customTemplates = CustomEventFormTemplate::orderBy('created_at', 'desc')->get();
+        $customTemplates = CustomEventFormTemplate::query()
+            ->when(!$user->canManageAllEvents(), fn ($query) => $query->where('created_by', $user->id))
+            ->orderBy('created_at', 'desc')
+            ->get();
         $existingForm = $event->eventForm;
 
         return view('event-forms.create', compact('event', 'templates', 'customTemplates', 'existingForm'));
@@ -41,7 +44,7 @@ class EventFormController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -71,6 +74,10 @@ class EventFormController extends Controller
             // Update existing template
             $template = CustomEventFormTemplate::find($templateId);
             if ($template) {
+                if (!$user->canManageAllEvents() && $template->created_by !== $user->id) {
+                    abort(403, 'Unauthorized action.');
+                }
+
                 $template->update([
                     'form_fields' => $formFields
                 ]);
@@ -103,7 +110,7 @@ class EventFormController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -129,6 +136,12 @@ class EventFormController extends Controller
 
     public function saveAsTemplate(Request $request, Event $event)
     {
+        $user = auth()->user();
+
+        if (!$user->canManageEvent($event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'template_name' => 'required|string|max:255',
             'template_description' => 'nullable|string',
@@ -152,7 +165,11 @@ class EventFormController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -172,6 +189,16 @@ class EventFormController extends Controller
 
     public function updateCustomTemplate(Request $request, CustomEventFormTemplate $customTemplate)
     {
+        $user = auth()->user();
+
+        if (!$user->canManageEvents()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -189,6 +216,16 @@ class EventFormController extends Controller
 
     public function deleteCustomTemplate(CustomEventFormTemplate $customTemplate)
     {
+        $user = auth()->user();
+
+        if (!$user->canManageEvents()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $customTemplate->delete();
         return back()->with('success', 'Template berhasil dihapus!');
     }

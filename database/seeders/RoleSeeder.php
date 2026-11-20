@@ -18,12 +18,7 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'admin',
                 'display_name' => 'Admin',
-                'description' => 'Admin yang dapat mengelola semua event dan memverifikasi pembayaran'
-            ],
-            [
-                'name' => 'organizer',
-                'display_name' => 'Organizer',
-                'description' => 'Penyelenggara event yang dapat membuat dan mengelola event'
+                'description' => 'Admin yang dapat mengelola event, form penilaian, juri, pembayaran, dan seluruh data event'
             ],
             [
                 'name' => 'participant',
@@ -38,7 +33,10 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            Role::create($role);
+            Role::updateOrCreate(
+                ['name' => $role['name']],
+                $role
+            );
         }
     }
 }

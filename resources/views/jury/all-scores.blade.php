@@ -3,38 +3,37 @@
 @section('title', 'Semua Penilaian')
 
 @section('content')
-<div class="card">
-    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">Semua Penilaian Juri</h1>
-    <p style="color: #666; margin-bottom: 2rem;">Monitor dan kelola semua penilaian dari juri</p>
+<div class="page-header-premium">
+    <h1>Semua Penilaian Juri</h1>
+    <p>Monitor dan kelola semua penilaian dari juri.</p>
+</div>
 
-    <!-- Statistics -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Total Penilaian</h3>
-            <div class="number">{{ $stats['total_scores'] }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Event Dinilai</h3>
-            <div class="number">{{ $stats['total_events_scored'] }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Rata-rata Nilai</h3>
-            <div class="number">{{ $stats['average_score'] }}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Total Juri Aktif</h3>
-            <div class="number">{{ $stats['total_juries'] }}</div>
-        </div>
+<div class="stats-grid-premium">
+    <div class="stat-card-premium">
+        <h3>Total Penilaian</h3>
+        <p class="number">{{ $stats['total_scores'] }}</p>
+    </div>
+    <div class="stat-card-premium">
+        <h3>Event Dinilai</h3>
+        <p class="number">{{ $stats['total_events_scored'] }}</p>
+    </div>
+    <div class="stat-card-premium">
+        <h3>Rata-rata Nilai</h3>
+        <p class="number">{{ $stats['average_score'] }}</p>
+    </div>
+    <div class="stat-card-premium">
+        <h3>Total Juri Aktif</h3>
+        <p class="number">{{ $stats['total_juries'] }}</p>
     </div>
 </div>
 
-<div class="card">
-    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Daftar Penilaian</h2>
+<div class="premium-card">
+    <h2 class="mb-4 text-base font-semibold text-slate-900">Daftar Penilaian</h2>
 
     @if($scores->count() > 0)
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
+    <div class="overflow-x-auto">
+        <table class="table-premium">
+            <thead class="table-header-black">
                 <tr>
                     <th>Tanggal</th>
                     <th>Event</th>
@@ -50,47 +49,43 @@
                 <tr>
                     <td>{{ $score->created_at->format('d M Y H:i') }}</td>
                     <td>
-                        <a href="{{ route('events.show', $score->registration->event) }}" style="color: #3498db; text-decoration: underline;">
-                            {{ $score->registration->event->title }}
+                        <a href="{{ route('events.show', $score->registration->event) }}" class="font-medium text-indigo-600 underline hover:text-indigo-700">
+                            {{ $score->registration->event->name }}
                         </a>
                     </td>
                     <td>{{ $score->registration->user->name }}</td>
                     <td>{{ $score->jury->name }}</td>
                     <td>
-                        <span class="badge badge-info" style="font-size: 1rem;">
-                            {{ $score->score }}/100
-                        </span>
+                        <span class="badge badge-info">{{ $score->score }}/100</span>
                     </td>
                     <td>
                         @if($score->public_feedback)
                         <button
                             type="button"
-                            class="btn btn-primary"
-                            style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                            class="btn btn-primary btn-sm"
                             onclick="showFeedback('{{ $score->id }}', 'public')">
                             Lihat Feedback
                         </button>
-                        <div id="public-{{ $score->id }}" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #3498db;">
+                        <div id="public-{{ $score->id }}" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #4f46e5;">
                             {{ $score->public_feedback }}
                         </div>
                         @else
-                        <span style="color: #999;">-</span>
+                        <span class="text-slate-400">-</span>
                         @endif
                     </td>
                     <td>
                         @if($score->private_evaluation)
                         <button
                             type="button"
-                            class="btn btn-warning"
-                            style="padding: 0.5rem 1rem; font-size: 0.875rem;"
+                            class="btn btn-warning btn-sm"
                             onclick="showFeedback('{{ $score->id }}', 'private')">
                             Lihat Evaluasi
                         </button>
-                        <div id="private-{{ $score->id }}" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #fff3cd; border-radius: 5px; border-left: 3px solid #f39c12;">
+                        <div id="private-{{ $score->id }}" style="display: none; margin-top: 0.5rem; padding: 0.75rem; background: #fffbeb; border-radius: 0.5rem; border-left: 3px solid #d97706;">
                             {{ $score->private_evaluation }}
                         </div>
                         @else
-                        <span style="color: #999;">-</span>
+                        <span class="text-slate-400">-</span>
                         @endif
                     </td>
                 </tr>
@@ -99,15 +94,27 @@
         </table>
     </div>
 
-    <div style="margin-top: 1.5rem;">
+    <div class="mt-5 border-t border-slate-100 pt-4">
         {{ $scores->links() }}
     </div>
     @else
-    <div style="text-align: center; padding: 3rem; color: #999;">
-        <p style="font-size: 1.125rem;">Belum ada penilaian.</p>
+    <div class="empty-state-premium">
+        <h3>Belum ada penilaian</h3>
+        <p>Penilaian dari juri akan muncul di sini setelah dikirim.</p>
     </div>
     @endif
 </div>
+
+@push('styles')
+<style>
+    .table-premium thead.table-header-black,
+    .table-premium thead.table-header-black th {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

@@ -22,6 +22,11 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'kenari' => [
+        'key' => env('KENARI_API_KEY'),
+        'base_url' => env('KENARI_BASE_URL', 'https://kenari.id/v1'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

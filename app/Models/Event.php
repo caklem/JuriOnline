@@ -20,6 +20,8 @@ class Event extends Model
         'registered_count',
         'registration_start',
         'registration_end',
+        'event_date',
+        'scoring_enabled',
         'event_start',
         'event_end',
         'status',
@@ -33,6 +35,8 @@ class Event extends Model
         'price' => 'decimal:2',
         'registration_start' => 'date',
         'registration_end' => 'date',
+        'event_date' => 'date',
+        'scoring_enabled' => 'boolean',
         'event_start' => 'date',
         'event_end' => 'date',
     ];
@@ -101,5 +105,53 @@ class Event extends Model
     public function getAvailableSlots()
     {
         return max(0, $this->quota - $this->registered_count);
+    }
+
+    /**
+     * Apakah juri boleh menilai peserta saat ini?
+     * Nilai manual (true/false) selalu menang; null = otomatis sejak hari H.
+     */
+    public function isScoringOpen(): bool
+    {
+        if ($this->scoring_enabled === true) {
+            return true;
+        }
+
+        if ($this->scoring_enabled === false) {
+            return false;
+        }
+
+        $day = $this->scoringOpensAt();
+
+        return $day !== null
+            && Carbon::now()->startOfDay()->greaterThanOrEqualTo($day->copy()->startOfDay());
+    }
+
+    /**
+     * 'open' (dibuka panitia) | 'closed' (ditutup panitia) | 'auto' (mulai hari H).
+     */
+    public function scoringMode(): string
+    {
+        return match ($this->scoring_enabled) {
+            true => 'open',
+            false => 'closed',
+            default => 'auto',
+        };
+    }
+
+    public function scoringOpensAt(): ?Carbon
+    {
+        return $this->event_date ?? $this->event_start;
+    }
+
+    public function scoringStatusLabel(): string
+    {
+        if ($this->isScoringOpen()) {
+            return $this->scoringMode() === 'auto' ? 'Dibuka otomatis pada hari H' : 'Dibuka oleh panitia';
+        }
+
+        return $this->scoringMode() === 'closed'
+            ? 'Ditutup oleh panitia'
+            : 'Menunggu hari H';
     }
 }

@@ -1,0 +1,19 @@
+# Defence in depth: this directory is the application root, not a web root.
+# Only /public should ever be served. Apache 2.4 denies the sensitive paths
+# below even when a vhost or XAMPP alias points DocumentRoot here.
+<IfModule mod_authz_core.c>
+    <FilesMatch "^\.(env|git|htaccess|gitignore)">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.git|\.env|bootstrap|config|database|dev-tools|node_modules|resources|routes|storage|tests|vendor)(/|$) - [F,L]
+    RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|artisan|migrate\.bat|setup\.bat|start\.bat)$ - [F,L]
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

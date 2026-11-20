@@ -38,10 +38,10 @@ class PaymentController extends Controller
         }
 
         $validated = $request->validate([
-            'proof_file' => 'required|image|mimes:jpeg,png,jpg,pdf|max:2048',
+            'proof_file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
-        $proofPath = $request->file('proof_file')->store('payment-proofs', 'public');
+        $proofPath = $request->file('proof_file')->store('payment-proofs', 'local');
 
         Payment::create([
             'registration_id' => $registration->id,
@@ -63,7 +63,7 @@ class PaymentController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($user->isOrganizer() && $payment->registration->event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($payment->registration->event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -89,26 +89,53 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran berhasil diverifikasi!');
     }
 
+    /**
+     * Serve a payment proof from the private disk to authorized viewers only:
+     * the participant who owns the registration, or a manager of the event.
+     */
+    public function proof(Payment $payment)
+    {
+        $user = auth()->user();
+        $registration = $payment->registration;
+
+        if (!$registration) {
+            abort(404);
+        }
+
+        $isOwner = $registration->user_id === $user->id;
+        $canManage = $user->canVerifyPayments() && $user->canManageEvent($registration->event);
+
+        if (!$isOwner && !$canManage) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $disk = Storage::disk('local');
+
+        if (!$payment->proof_file || !$disk->exists($payment->proof_file)) {
+            abort(404);
+        }
+
+        return $disk->response($payment->proof_file);
+    }
+
     public function pendingPayments()
     {
         $user = auth()->user();
 
-        if ($user->isOrganizer()) {
-            // Organizer only sees payments for their events
-            $payments = Payment::where('status', 'pending')
-                ->whereHas('registration.event', function ($query) use ($user) {
-                    $query->where('organizer_id', $user->id);
-                })
-                ->with(['registration.event', 'registration.user'])
-                ->latest()
-                ->paginate(15);
-        } else {
-            // Admin and Admin Owner see all pending payments
-            $payments = Payment::where('status', 'pending')
-                ->with(['registration.event', 'registration.user'])
-                ->latest()
-                ->paginate(15);
+        if (!$user->canVerifyPayments()) {
+            abort(403, 'Unauthorized action.');
         }
+
+        $query = Payment::where('status', 'pending')
+            ->with(['registration.event', 'registration.user']);
+
+        if (!$user->canManageAllEvents()) {
+            $query->whereHas('registration.event', function ($query) use ($user) {
+                $query->where('organizer_id', $user->id);
+            });
+        }
+
+        $payments = $query->latest()->paginate(15);
 
         return view('payments.pending', compact('payments'));
     }
@@ -117,7 +144,7 @@ class PaymentController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->isAdminOwner() && !$user->isAdmin()) {
+        if (!$user->canManageAllEvents()) {
             abort(403, 'Unauthorized action.');
         }
 

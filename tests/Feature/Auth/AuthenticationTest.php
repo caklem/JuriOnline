@@ -28,6 +28,22 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertSessionHas('login_loading', true);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('id="loginLoadingOverlay"', false)
+            ->assertSee('Memuat dashboard', false);
+    }
+
+    public function test_dashboard_has_no_loading_overlay_without_a_fresh_login(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('id="loginLoadingOverlay"', false);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

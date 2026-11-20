@@ -22,6 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'is_active',
+        'event_scope',
+        'created_by',
     ];
 
     /**
@@ -35,6 +38,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * Default attribute values for new instances.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -44,6 +56,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -73,21 +86,41 @@ class User extends Authenticatable
         return $this->hasMany(EventJuryFormAssignment::class, 'jury_id');
     }
 
-    // Get assigned events for this jury
+    // Assignment yang sudah disetujui juri (boleh menilai)
+    public function acceptedJuryAssignments()
+    {
+        return $this->juryFormAssignments()->accepted();
+    }
+
+    // Undangan yang belum dijawab juri
+    public function pendingJuryAssignments()
+    {
+        return $this->juryFormAssignments()->pending();
+    }
+
+    public function hasAcceptedAssignmentFor(Event $event): bool
+    {
+        return $this->acceptedJuryAssignments()
+            ->where('event_id', $event->id)
+            ->exists();
+    }
+
+    // Get assigned events for this jury (hanya yang sudah disetujui)
     public function assignedEvents()
     {
         return $this->belongsToMany(Event::class, 'event_jury_form_assignments', 'jury_id', 'event_id')
-            ->withPivot('jury_form_template_id')
+            ->withPivot(['jury_form_template_id', 'status'])
+            ->wherePivot('status', EventJuryFormAssignment::STATUS_ACCEPTED)
             ->withTimestamps();
     }
 
-    // Get assigned form template for a specific event
+    // Get assigned form template for a specific event (hanya bila sudah disetujui)
     public function getAssignedFormTemplate(Event $event)
     {
-        $assignment = $this->juryFormAssignments()
+        $assignment = $this->acceptedJuryAssignments()
             ->where('event_id', $event->id)
             ->first();
-        
+
         return $assignment ? $assignment->juryFormTemplate : null;
     }
 
@@ -107,11 +140,6 @@ class User extends Authenticatable
         return $this->hasRole(Role::ADMIN);
     }
 
-    public function isOrganizer()
-    {
-        return $this->hasRole(Role::ORGANIZER);
-    }
-
     public function isParticipant()
     {
         return $this->hasRole(Role::PARTICIPANT);
@@ -122,13 +150,65 @@ class User extends Authenticatable
         return $this->hasRole(Role::JURY);
     }
 
-    public function canManageEvents()
+    public function isActive()
     {
-        return $this->isAdminOwner() || $this->isAdmin() || $this->isOrganizer();
+        return $this->is_active !== false;
     }
 
-    public function canVerifyPayments()
+    public function isAdminOrOwner()
     {
-        return $this->isAdminOwner() || $this->isAdmin() || $this->isOrganizer();
+        return $this->isAdmin() || $this->isAdminOwner();
+    }
+
+    public function isEventAdmin(): bool
+    {
+        return $this->isAdmin() && $this->event_scope === 'own';
+    }
+
+    public function canManageAllEvents(): bool
+    {
+        return $this->isAdminOwner() || ($this->isAdmin() && $this->event_scope !== 'own');
+    }
+
+    public function canManageEvents(): bool
+    {
+        return $this->isAdminOwner() || $this->isAdmin();
+    }
+
+    public function canManageEvent(Event $event): bool
+    {
+        return $this->isAdminOwner()
+            || ($this->isAdmin() && ($this->canManageAllEvents() || $event->organizer_id === $this->id));
+    }
+
+    public function canVerifyPayments(): bool
+    {
+        return $this->isAdminOwner() || $this->isAdmin();
+    }
+
+    public function canViewAllScores(): bool
+    {
+        return $this->canManageAllEvents();
+    }
+
+    public function roleLabel(): string
+    {
+        if ($this->isAdminOwner()) {
+            return 'Admin Owner';
+        }
+
+        if ($this->isAdmin()) {
+            return $this->isEventAdmin() ? 'Admin Event' : 'Admin';
+        }
+
+        if ($this->isParticipant()) {
+            return 'Peserta';
+        }
+
+        if ($this->isJury()) {
+            return 'Juri';
+        }
+
+        return 'Pengguna';
     }
 }

@@ -1,343 +1,142 @@
 @extends('layouts.app')
 
-@section('title', 'JuriOnline - Platform Penilaian Digital Terpercaya')
+@section('title', 'Semua Event — JuriOnline')
 
 @php
 use Illuminate\Support\Facades\Storage;
+
+$eventStatus = function ($event) {
+    $now = now();
+
+    if ($now->gt($event->event_end)) {
+        return ['label' => 'Selesai', 'class' => 'bg-slate-100 text-slate-600 ring-slate-500/20'];
+    }
+
+    if ($event->isRegistrationOpen()) {
+        return ['label' => 'Pendaftaran dibuka', 'class' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'];
+    }
+
+    if ($now->lt($event->registration_start)) {
+        return ['label' => 'Segera dibuka', 'class' => 'bg-sky-50 text-sky-700 ring-sky-600/20'];
+    }
+
+    if ($event->getAvailableSlots() <= 0) {
+        return ['label' => 'Kuota penuh', 'class' => 'bg-amber-50 text-amber-700 ring-amber-600/20'];
+    }
+
+    return ['label' => 'Pendaftaran ditutup', 'class' => 'bg-amber-50 text-amber-700 ring-amber-600/20'];
+};
 @endphp
 
 @section('content')
-<!-- Hero Section -->
-<section style="background: #2563eb; color: white; padding: 4rem 2rem; text-align: center; margin-bottom: 3rem; border-radius: 8px; position: relative; overflow: hidden; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);">
-    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg width=\"100\" height=\"100\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"><path d=\"M 100 0 L 0 0 0 100\" fill=\"none\" stroke=\"rgba(255,255,255,0.05)\" stroke-width=\"1\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grid)\"/></svg>'); opacity: 0.3;"></div>
-    <div style="position: relative; z-index: 1; max-width: 900px; margin: 0 auto;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">⚖️</div>
-        <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 1rem; letter-spacing: -1px;">JuriOnline</h1>
-        <p style="font-size: 1.5rem; margin-bottom: 1.5rem; opacity: 0.95; font-weight: 300;">Platform Penilaian Digital Terpercaya untuk Event Kompetisi</p>
-        <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7;">
-            Kelola event kompetisi, penilaian juri, dan pendaftaran peserta dengan sistem digital yang profesional, transparan, dan mudah digunakan. Solusi lengkap untuk penyelenggara event, juri profesional, dan peserta kompetisi.
-        </p>
-        @if(!auth()->check())
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{{ route('register') }}" class="btn-premium btn-premium-success" style="padding: 1rem 2.5rem; font-size: 1.1rem; text-decoration: none;">
-                🚀 Daftar Sekarang
-            </a>
-            <a href="{{ route('login') }}" class="btn-premium btn-premium-outline" style="padding: 1rem 2.5rem; font-size: 1.1rem; text-decoration: none; background: rgba(255,255,255,0.1); color: white; border: 2px solid white;">
-                🔐 Masuk ke Akun
-            </a>
+    <div class="space-y-8">
+        {{-- Page header --}}
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Katalog Event</p>
+                <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Semua Event</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Jelajahi event yang dipublikasikan oleh penyelenggara. Buka detail untuk melihat jadwal, kuota, dan status pendaftaran.
+                </p>
+            </div>
+
+            <div class="inline-flex items-center gap-2 self-start rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm sm:self-auto">
+                <span class="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+                {{ method_exists($events, 'total') ? $events->total() : $events->count() }} event
+            </div>
         </div>
+
+        @if($events->isEmpty())
+            <div class="empty-state-premium">
+                <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-500">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-6 w-6" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" />
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-base font-semibold text-slate-950">Tidak ada event yang tersedia saat ini</h3>
+                <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                    Event baru akan tampil di sini setelah dibuka pendaftarannya. Silakan kembali lagi nanti untuk event terbaru.
+                </p>
+            </div>
+        @else
+            <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach($events as $event)
+                    @php $status = $eventStatus($event); @endphp
+
+                    <article class="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg">
+                        {{-- Banner --}}
+                        <a href="{{ route('events.detail', $event) }}" class="relative block aspect-[16/10] overflow-hidden bg-slate-900">
+                            @if($event->banner)
+                                <img
+                                    src="{{ Storage::url($event->banner) }}"
+                                    alt="{{ $event->name }}"
+                                    class="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105">
+                            @else
+                                <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900"></div>
+                                <div class="absolute inset-0 grid place-items-center text-white/70">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" class="h-12 w-12" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
+                                    </svg>
+                                </div>
+                            @endif
+
+                            <div class="absolute inset-x-4 top-4 flex flex-wrap items-center gap-2">
+                                @if($event->category)
+                                    <span class="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur">{{ $event->category->name }}</span>
+                                @endif
+                                <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ring-1 ring-inset {{ $status['class'] }}">{{ $status['label'] }}</span>
+                            </div>
+                        </a>
+
+                        {{-- Body --}}
+                        <div class="flex flex-1 flex-col p-6">
+                            <h2 class="text-lg font-semibold tracking-tight text-slate-950">
+                                <a href="{{ route('events.detail', $event) }}" class="transition group-hover:text-indigo-700">{{ $event->name }}</a>
+                            </h2>
+
+                            <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{{ Str::limit($event->description, 120) }}</p>
+
+                            <dl class="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-5 text-sm">
+                                <div>
+                                    <dt class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Penyelenggara</dt>
+                                    <dd class="mt-1 truncate font-medium text-slate-700">{{ $event->organizer->name }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Harga</dt>
+                                    <dd class="mt-1 font-medium text-slate-700">Rp {{ number_format($event->price, 0, ',', '.') }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Jadwal</dt>
+                                    <dd class="mt-1 font-medium text-slate-700">{{ $event->event_start->format('d M Y') }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Kuota</dt>
+                                    <dd class="mt-1 font-medium">
+                                        @if($event->getAvailableSlots() > 0)
+                                            <span class="text-emerald-700">{{ $event->getAvailableSlots() }} / {{ $event->quota }} tersisa</span>
+                                        @else
+                                            <span class="text-rose-600">Penuh</span>
+                                        @endif
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <a href="{{ route('events.detail', $event) }}" class="btn btn-primary mt-6 w-full">
+                                Lihat Detail Event
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" />
+                                </svg>
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+
+            {{-- Pagination --}}
+            <div class="mt-8">
+                {{ $events->links() }}
+            </div>
         @endif
     </div>
-</section>
-
-<!-- Main Content Card - All in One -->
-<div class="premium-card" style="margin-bottom: 3rem;">
-    <!-- About Section -->
-    <div style="text-align: center; margin-bottom: 3rem; padding-bottom: 2.5rem; border-bottom: 2px solid var(--gray-light);">
-        <h2 style="font-size: 2rem; font-weight: 700; color: var(--dark); margin-bottom: 0.75rem;">Tentang JuriOnline</h2>
-        <p style="font-size: 1.1rem; color: var(--gray); margin: 0 0 1.5rem 0;">Platform digital inovatif untuk manajemen event dan penilaian kompetisi</p>
-        <p style="font-size: 1.1rem; margin: 0 auto; max-width: 900px; line-height: 1.8; color: var(--dark);">
-            <strong>JuriOnline</strong> adalah platform digital inovatif yang dirancang khusus untuk memudahkan proses penilaian dan manajemen event kompetisi, lomba, dan acara penjurian lainnya. Kami menyediakan solusi terintegrasi untuk mengelola seluruh siklus event, mulai dari pendaftaran peserta hingga penilaian oleh juri profesional.
-        </p>
-    </div>
-
-    <!-- Visi Misi -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-        <div style="padding: 2rem; background: #eff6ff; border-radius: 8px; border-left: 4px solid var(--primary-color);">
-            <h3 style="color: var(--primary-color); margin-bottom: 1rem; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>🎯</span> Visi
-            </h3>
-            <p style="margin: 0; font-size: 1rem; color: var(--dark); line-height: 1.7;">
-                Menjadi platform terdepan di Indonesia untuk sistem penilaian digital yang profesional, transparan, dan terpercaya, mendukung pengembangan talenta dan kompetisi berkualitas di berbagai bidang.
-            </p>
-        </div>
-        <div style="padding: 2rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid var(--success-color);">
-            <h3 style="color: var(--success-color); margin-bottom: 1rem; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>🚀</span> Misi
-            </h3>
-            <ul style="margin: 0; padding-left: 1.5rem; font-size: 1rem; color: var(--dark); line-height: 1.8;">
-                <li style="margin-bottom: 0.5rem;">Menyediakan sistem penilaian yang akurat, transparan, dan mudah digunakan</li>
-                <li style="margin-bottom: 0.5rem;">Mendukung penyelenggara event dalam mengelola kompetisi secara profesional</li>
-                <li style="margin-bottom: 0.5rem;">Memfasilitasi juri dalam memberikan penilaian yang objektif dan terstruktur</li>
-                <li style="margin-bottom: 0.5rem;">Memberikan pengalaman terbaik bagi peserta dalam proses pendaftaran dan tracking</li>
-                <li>Mengembangkan teknologi yang terus berinovasi sesuai kebutuhan pengguna</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Nilai-Nilai -->
-    <div style="margin-bottom: 3rem;">
-        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Nilai-Nilai Kami</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-            <div style="padding: 1.5rem; background: #eff6ff; border-radius: 8px; border-left: 4px solid var(--primary-color); text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🎯</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Profesional</h4>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--dark);">Layanan profesional dengan standar tinggi dalam setiap aspek platform.</p>
-            </div>
-            <div style="padding: 1.5rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid var(--success-color); text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔒</div>
-                <h4 style="color: var(--success-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Transparan</h4>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--dark);">Transparansi dalam proses penilaian dan manajemen event adalah prioritas utama.</p>
-            </div>
-            <div style="padding: 1.5rem; background: #fffbeb; border-radius: 8px; border-left: 4px solid var(--warning-color); text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">⚡</div>
-                <h4 style="color: var(--warning-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Inovatif</h4>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--dark);">Terus berinovasi untuk memberikan solusi terbaik dan fitur-fitur terkini.</p>
-            </div>
-            <div style="padding: 1.5rem; background: #fef2f2; border-radius: 8px; border-left: 4px solid var(--danger-color); text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🤝</div>
-                <h4 style="color: var(--danger-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Terpercaya</h4>
-                <p style="margin: 0; font-size: 0.95rem; color: var(--dark);">Membangun kepercayaan melalui layanan yang konsisten dan dapat diandalkan.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fitur Utama -->
-    <div style="margin-bottom: 3rem; padding-top: 2.5rem; border-top: 2px solid var(--gray-light);">
-        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Fitur Utama</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Form Builder Custom</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Buat form pendaftaran dan penilaian sesuai kebutuhan dengan drag & drop builder yang mudah digunakan.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">⚖️</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Multiple Form Penilaian</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Satu event dapat memiliki beberapa form penilaian untuk juri berbeda (Vokal, Adab, Terbang, dll).</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📊</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Rekapitulasi Otomatis</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Sistem menghitung rata-rata nilai dari semua juri secara otomatis dan transparan.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">👥</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Manajemen Peserta</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Kelola pendaftaran, verifikasi, dan tracking status peserta dengan mudah dan real-time.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">💳</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Verifikasi Pembayaran</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Upload bukti pembayaran dan verifikasi terintegrasi dengan status pendaftaran.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0; text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🏆</div>
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">Leaderboard Real-time</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Peringkat peserta yang update secara real-time berdasarkan penilaian juri profesional.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Siapa yang Dapat Menggunakan -->
-    <div style="margin-bottom: 3rem; padding-top: 2.5rem; border-top: 2px solid var(--gray-light);">
-        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Siapa yang Dapat Menggunakan JuriOnline?</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-            <div class="premium-card" style="margin-bottom: 0;">
-                <h4 style="color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">🎯 Organizer</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Penyelenggara event yang ingin mengelola kompetisi secara profesional dengan sistem yang terintegrasi.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0;">
-                <h4 style="color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">⚖️ Juri</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Juri profesional yang membutuhkan platform untuk memberikan penilaian yang terstruktur dan objektif.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0;">
-                <h4 style="color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">👤 Peserta</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Peserta kompetisi yang ingin mendaftar dan tracking status pendaftaran serta hasil penilaian.</p>
-            </div>
-            <div class="premium-card" style="margin-bottom: 0;">
-                <h4 style="color: var(--primary-color); margin-bottom: 0.75rem; font-size: 1.1rem;">👨‍💼 Admin</h4>
-                <p style="margin: 0; color: var(--gray); font-size: 0.95rem;">Administrator yang mengelola seluruh sistem, verifikasi pembayaran, dan monitoring event.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keunggulan -->
-    <div style="margin-bottom: 3rem; padding-top: 2.5rem; border-top: 2px solid var(--gray-light);">
-        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Keunggulan JuriOnline</h3>
-        <div style="background: #f1f5f9; padding: 2rem; border-radius: 8px; border: 1px solid #e5e7eb;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Sistem terintegrasi untuk seluruh proses event</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Form builder yang mudah digunakan tanpa coding</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Support multiple form penilaian per event</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Rekapitulasi nilai otomatis dan akurat</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Interface yang user-friendly dan profesional</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Real-time updates untuk semua pengguna</p>
-                </div>
-                <div style="display: flex; align-items: start; gap: 0.75rem;">
-                    <span style="font-size: 1.5rem; flex-shrink: 0;">✅</span>
-                    <p style="margin: 0; color: var(--dark);">Sistem keamanan data yang terjamin</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kontak -->
-    <div style="margin-bottom: 2rem; padding-top: 2.5rem; border-top: 2px solid var(--gray-light);">
-        <h3 style="color: var(--primary-color); margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Hubungi Kami</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-            <div style="padding: 1.5rem; background: #eff6ff; border-radius: 8px; border-left: 4px solid var(--primary-color); text-align: center;">
-                <h4 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.1rem;">📧 Email</h4>
-                <p style="margin: 0; color: var(--dark); font-size: 0.95rem;">info@jurionline.com</p>
-            </div>
-            <div style="padding: 1.5rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid var(--success-color); text-align: center;">
-                <h4 style="color: var(--success-color); margin-bottom: 0.5rem; font-size: 1.1rem;">🌐 Website</h4>
-                <p style="margin: 0; color: var(--dark); font-size: 0.95rem;">www.jurionline.com</p>
-            </div>
-            <div style="padding: 1.5rem; background: #fffbeb; border-radius: 8px; border-left: 4px solid var(--warning-color); text-align: center;">
-                <h4 style="color: var(--warning-color); margin-bottom: 0.5rem; font-size: 1.1rem;">💬 Support</h4>
-                <p style="margin: 0; color: var(--dark); font-size: 0.95rem;">support@jurionline.com</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Events Section -->
-<section id="events" style="margin-bottom: 4rem;">
-    <div class="page-header-premium" style="text-align: center; margin-bottom: 2rem;">
-        <h2>🎯 Event Tersedia</h2>
-        <p>Temukan event menarik dan daftar sekarang juga!</p>
-    </div>
-
-    @if($events->isEmpty())
-    <div class="empty-state-premium">
-        <div class="empty-state-premium-icon">📅</div>
-        <h3>Tidak ada event yang tersedia saat ini</h3>
-        <p>Silakan kembali lagi nanti untuk event terbaru!</p>
-    </div>
-    @else
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-        @foreach($events as $event)
-        <div class="premium-card" style="margin-bottom: 0; transition: all 0.3s; cursor: pointer;" onclick="window.location.href='{{ route('events.detail', $event) }}'">
-            <!-- Banner Image -->
-            @if($event->banner)
-            <div style="position: relative; overflow: hidden; border-radius: 8px; margin: -2rem -2rem 1.5rem -2rem; height: 200px; background: #2563eb;">
-                <img src="{{ Storage::url($event->banner) }}" alt="{{ $event->name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; cursor: zoom-in;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                @if($event->getAvailableSlots() > 0)
-                <span style="position: absolute; top: 10px; left: 10px; background: #16a34a; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">✓ Tersedia</span>
-                @else
-                <span style="position: absolute; top: 10px; left: 10px; background: #dc2626; color: white; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: bold;">✕ Penuh</span>
-                @endif
-            </div>
-            @else
-            <div style="height: 200px; background: #2563eb; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: -2rem -2rem 1.5rem -2rem; color: white; font-size: 3rem;">🎯</div>
-            @endif
-
-            <!-- Category Badge -->
-            @if($event->category)
-            <div style="margin-bottom: 1rem;">
-                <span class="badge-premium badge-premium-info">{{ $event->category->name }}</span>
-            </div>
-            @endif
-
-            <!-- Event Title -->
-            <h3 style="margin-bottom: 1rem; font-size: 1.3rem; font-weight: 700; color: var(--dark); line-height: 1.3;">
-                {{ $event->name }}
-            </h3>
-
-            <!-- Description -->
-            <p style="color: var(--gray); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6; height: 3em; overflow: hidden;">
-                {{ Str::limit($event->description, 100) }}
-            </p>
-
-            <!-- Event Info -->
-            <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; border: 1px solid #e5e7eb;">
-                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.2rem; margin-right: 0.5rem;">👤</span>
-                    <strong>Organizer:</strong>&nbsp;{{ $event->organizer->name }}
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.2rem; margin-right: 0.5rem;">💰</span>
-                    <strong>Harga:</strong>&nbsp;<span style="color: #16a34a; font-weight: bold;">Rp {{ number_format($event->price, 0, ',', '.') }}</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <span style="font-size: 1.2rem; margin-right: 0.5rem;">👥</span>
-                    <strong>Kuota:</strong>&nbsp;
-                    @if($event->getAvailableSlots() > 0)
-                    <span style="color: #16a34a; font-weight: bold;">{{ $event->getAvailableSlots() }} / {{ $event->quota }} tersisa</span>
-                    @else
-                    <span style="color: #dc2626; font-weight: bold;">Penuh</span>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Action Button -->
-            <a href="{{ route('events.detail', $event) }}" class="btn-premium btn-premium-primary" style="width: 100%; text-align: center; padding: 0.9rem; font-size: 1rem; text-decoration: none;">
-                👁️ Lihat Detail & Daftar
-            </a>
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Pagination -->
-    <div style="margin-top: 2rem;">
-        {{ $events->links() }}
-    </div>
-    @endif
-</section>
-
-<!-- CTA Section -->
-@if(!auth()->check())
-<section style="background: #2563eb; color: white; padding: 3rem 2rem; text-align: center; border-radius: 8px; margin-bottom: 3rem;">
-    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Siap Memulai Event Anda?</h2>
-    <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.95;">Daftar sekarang dan kelola event kompetisi Anda dengan mudah dan profesional</p>
-    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="{{ route('register') }}" class="btn-premium" style="background: white; color: #2563eb; padding: 1rem 2.5rem; font-size: 1.1rem; text-decoration: none; border: none;">
-            🚀 Daftar Sekarang
-        </a>
-        <a href="{{ route('login') }}" class="btn-premium" style="background: rgba(255,255,255,0.2); color: white; padding: 1rem 2.5rem; font-size: 1.1rem; text-decoration: none; border: 2px solid white;">
-            🔐 Masuk ke Akun
-        </a>
-    </div>
-</section>
-@endif
-
-<style>
-    .premium-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    section {
-        animation: fadeIn 0.6s ease-out;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @media (max-width: 768px) {
-        section h1 {
-            font-size: 2rem !important;
-        }
-        
-        section p {
-            font-size: 0.95rem !important;
-        }
-    }
-</style>
 @endsection

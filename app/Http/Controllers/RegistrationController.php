@@ -79,6 +79,17 @@ class RegistrationController extends Controller
         try {
             DB::beginTransaction();
 
+            // Re-check quota under a row lock: the earlier check runs outside the
+            // transaction and would otherwise allow concurrent overbooking.
+            $lockedEvent = Event::whereKey($event->id)->lockForUpdate()->firstOrFail();
+
+            if ($lockedEvent->status !== 'active'
+                || $lockedEvent->registered_count >= $lockedEvent->quota) {
+                DB::rollBack();
+
+                return back()->with('error', 'Pendaftaran event ini sudah ditutup atau kuota penuh.');
+            }
+
             // Create registration
             $registration = Registration::create([
                 'event_id' => $event->id,
@@ -97,7 +108,7 @@ class RegistrationController extends Controller
             }
 
             // Increment registered count
-            $event->increment('registered_count');
+            $lockedEvent->increment('registered_count');
 
             DB::commit();
 
@@ -118,7 +129,7 @@ class RegistrationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($user->isOrganizer() && $registration->event->organizer_id !== $user->id) {
+        if (!$user->isParticipant() && !$user->canManageEvent($registration->event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -140,14 +151,14 @@ class RegistrationController extends Controller
     public function updateStatus(Request $request, Registration $registration)
     {
         $validated = $request->validate([
-            'status' => 'required|in:verified,rejected,cancelled',
+            'status' => 'required|in:pending,verified,rejected,cancelled',
             'notes' => 'nullable|string',
         ]);
 
         // Check authorization
         $user = auth()->user();
 
-        if ($user->isOrganizer() && $registration->event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($registration->event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -161,7 +172,7 @@ class RegistrationController extends Controller
         // Check authorization
         $user = auth()->user();
 
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 

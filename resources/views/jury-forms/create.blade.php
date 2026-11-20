@@ -6,15 +6,17 @@
 
 <!-- Success Modal -->
 @if(session('template_success'))
-<div id="successModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s;">
-    <div style="background: white; padding: 3rem; border-radius: 20px; text-align: center; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
-        <div style="width: 80px; height: 80px; background: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-            <span style="font-size: 3rem; animation: checkPulse 0.6s;">✓</span>
+<div id="successModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 p-4" style="animation: fadeIn 0.3s;">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl" style="animation: slideUp 0.3s;">
+        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50 ring-1 ring-indigo-200" style="animation: checkPulse 0.6s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="h-8 w-8 text-indigo-600" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7" />
+            </svg>
         </div>
-        <h2 style="font-size: 1.75rem; font-weight: bold; color: #2c3e50; margin-bottom: 1rem;">Berhasil!</h2>
-        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">{{ session('template_success') }}</p>
-        <div style="display: inline-block; padding: 0.5rem 1rem; background: #ede7f6; border-radius: 8px; color: #667eea; font-size: 0.9rem;">
-            <div class="spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #667eea; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem;"></div>
+        <h2 class="text-2xl font-semibold tracking-tight text-slate-900">Berhasil!</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">{{ session('template_success') }}</p>
+        <div class="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+            <span class="spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #cbd5e1; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
             Menutup otomatis...
         </div>
     </div>
@@ -71,18 +73,21 @@
 </script>
 @endif
 
-<div class="card">
-    <div style="margin-bottom: 1rem;">
-        <a href="{{ route('events.show', $event) }}" style="color: #3498db; text-decoration: none;">
-            ← Kembali ke Detail Event
-        </a>
+<div class="page-header">
+    <a href="{{ route('events.show', $event) }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-indigo-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m0 0 6-6m-6 6 6 6" />
+        </svg>
+        Kembali ke Detail Event
+    </a>
+
+    <div class="mt-4">
+        <h1>Kelola Form Penilaian Juri</h1>
+        <p>{{ $event->name }}</p>
     </div>
 
-    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem;">Kelola Form Penilaian Juri</h1>
-    <h2 style="font-size: 1.25rem; color: #666; margin-bottom: 1.5rem;">{{ $event->name }}</h2>
-
     @if(session('success'))
-    <div class="alert alert-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1.5rem; border-radius: 8px;">
+    <div class="alert alert-success mt-5">
         {{ session('success') }}
     </div>
     @endif
@@ -92,57 +97,68 @@
     @endphp
 
     @if($existingFormsCount > 0)
-    <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #27ae60;">
-        <strong style="color: #27ae60;">✅ Form yang sudah dibuat ({{ $existingFormsCount }}):</strong>
-        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <div class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <strong class="text-sm font-semibold text-emerald-800">Form yang sudah dibuat ({{ $existingFormsCount }}):</strong>
+        <div class="mt-2 flex flex-wrap gap-2">
             @foreach($event->juryFormTemplates as $form)
-            <span style="background: white; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; color: #2c3e50; border: 1px solid #27ae60;">
+            <a href="{{ route('events.jury-form.custom', ['event' => $event, 'form' => $form->id]) }}"
+               class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-300 hover:text-indigo-700"
+               title="Edit form ini">
                 {{ $form->name ?? 'Form Juri' }}
-            </span>
+                <span class="text-xs font-medium text-indigo-600">Edit</span>
+            </a>
             @endforeach
         </div>
-        <p style="margin: 0.75rem 0 0 0; color: #2c3e50; font-size: 0.9rem;">
-            💡 <strong>Tip:</strong> Anda bisa membuat form tambahan untuk juri yang berbeda. Contoh: Form Juri Vokal, Form Juri Adab, Form Juri Terbang, dll.
+        <p class="mt-3 text-sm text-emerald-800">
+            <strong class="font-semibold">Tip:</strong> Anda bisa membuat form tambahan untuk juri yang berbeda. Contoh: Form Juri Vokal, Form Juri Adab, Form Juri Terbang, dll.
         </p>
     </div>
     @endif
 
     <!-- Custom Form Builder Button -->
-    <div style="margin-bottom: 1.5rem;">
-        <a href="{{ route('events.jury-form.custom', $event) }}" class="btn-premium btn-premium-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; border-radius: 8px;">
-            <span style="font-size: 1.5rem;">🎨</span>
-            <span><strong>{{ $existingFormsCount > 0 ? 'Buat Form Penilaian Baru' : 'Buat Form Penilaian Custom' }}</strong></span>
+    <div class="mt-5">
+        <a href="{{ route('events.jury-form.custom', $event) }}" class="btn-premium btn-premium-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+            </svg>
+            <strong>{{ $existingFormsCount > 0 ? 'Buat Form Penilaian Baru' : 'Buat Form Penilaian Custom' }}</strong>
         </a>
-        <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">
-            💡 <em>{{ $existingFormsCount > 0 ? 'Tambahkan form penilaian baru untuk juri yang berbeda' : 'Buat kriteria penilaian sesuai kebutuhan event Anda dengan form builder yang mudah' }}</em>
+        <p class="mt-2 text-sm italic text-slate-500">
+            {{ $existingFormsCount > 0 ? 'Tambahkan form penilaian baru untuk juri yang berbeda' : 'Buat kriteria penilaian sesuai kebutuhan event Anda dengan form builder yang mudah' }}
         </p>
     </div>
 
     @if($existingForm)
-    <div class="alert alert-success">
-        ✅ Event ini sudah memiliki form penilaian custom untuk juri
-        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
-            <a href="{{ route('events.jury-form.custom', $event) }}" class="btn btn-warning" style="padding: 0.5rem 1rem; font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center;">
-                ✏️ Edit Form
-            </a>
-            <button type="button" class="btn btn-primary" onclick="showPreview()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                👁️ Preview Form
-            </button>
+    <div class="alert alert-success mt-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm font-medium">Event ini sudah memiliki form penilaian custom untuk juri</p>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('events.jury-form.custom', ['event' => $event, 'form' => $existingForm->id]) }}" class="btn btn-warning">
+                    Edit Form
+                </a>
+                <button type="button" class="btn btn-primary" onclick="showPreview()">
+                    Preview Form
+                </button>
+            </div>
         </div>
     </div>
 
 
     @else
-    <div class="alert alert-warning">
-        ⚠️ Event ini menggunakan form penilaian standar (Nilai 0-100 + Feedback)
+    <div class="alert alert-warning mt-5">
+        Event ini menggunakan form penilaian standar (Nilai 0-100 + Feedback)
     </div>
     @endif
 </div>
 
 <!-- Template Form -->
 <div class="card">
-    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">📋 Pilih Template Form Penilaian</h2>
-    <p style="color: #666; margin-bottom: 1.5rem;">Gunakan template yang sudah tersedia untuk berbagai jenis kompetisi</p>
+    <div class="premium-card-header">
+        <div>
+            <h2 class="premium-card-title">Pilih Template Form Penilaian</h2>
+            <p class="mt-1 text-sm text-slate-500">Gunakan template yang sudah tersedia untuk berbagai jenis kompetisi</p>
+        </div>
+    </div>
 
     @php
     // Check if using custom form (not matching any template, including custom templates)
@@ -170,18 +186,23 @@
     }
     @endphp
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <!-- Custom Form Card -->
-        <div style="border: 2px solid {{ $isCustomForm ? '#2196f3' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isCustomForm ? '#e3f2fd' : '#f8f9fa' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isCustomForm ? 'border-indigo-300 bg-indigo-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isCustomForm)
-            <div style="position: absolute; top: -12px; right: 10px; background: #2196f3; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">🎨 Form Penilaian Custom</h3>
-            <div style="margin-bottom: 1rem;">
-                <strong>Fitur:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <h3 class="flex items-center gap-2 text-base font-semibold text-slate-900">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5 text-indigo-500" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5h6m-7 4h8m-8 4h5m-5 4h8M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                </svg>
+                Form Penilaian Custom
+            </h3>
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Fitur:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     <li>Buat kriteria sesuai kebutuhan</li>
                     <li>Tambah/hapus kriteria sesuka hati</li>
                     <li>Atur nilai maksimal per kriteria</li>
@@ -191,22 +212,22 @@
                 @php
                 $totalMaxCustom = array_sum(array_column($existingForm->criteria_fields, 'max'));
                 @endphp
-                <div style="margin-top: 0.5rem; padding: 0.5rem; background: #bbdefb; border-radius: 5px; font-size: 0.875rem;">
-                    <strong>Total Kriteria:</strong> {{ count($existingForm->criteria_fields) }} kriteria<br>
-                    <strong>Total Maksimal:</strong> {{ $totalMaxCustom }} poin
+                <div class="mt-3 space-y-0.5 rounded-lg bg-white/80 px-3 py-2 ring-1 ring-indigo-200">
+                    <div><strong class="font-semibold text-slate-900">Total Kriteria:</strong> {{ count($existingForm->criteria_fields) }} kriteria</div>
+                    <div><strong class="font-semibold text-slate-900">Total Maksimal:</strong> {{ $totalMaxCustom }} poin</div>
                 </div>
                 @endif
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="mt-5 flex flex-col gap-2">
                 @if($isCustomForm)
-                <button type="button" class="btn btn-primary" style="width: 100%;" disabled>
-                    ✓ Custom Form Aktif
+                <button type="button" class="btn btn-primary w-full" disabled>
+                    Custom Form Aktif
                 </button>
-                <button type="button" class="btn btn-outline-secondary" style="width: 100%;" onclick="showTemplateSelection()">
-                    📋 Gunakan Template
+                <button type="button" class="btn btn-outline-secondary w-full" onclick="showTemplateSelection()">
+                    Gunakan Template
                 </button>
                 @else
-                <a href="{{ route('events.jury-form.custom', $event) }}" class="btn btn-primary" style="width: 100%; text-decoration: none; display: inline-block; text-align: center;">
+                <a href="{{ route('events.jury-form.custom', $event) }}" class="btn btn-primary w-full">
                     Buat Form Custom
                 </a>
                 @endif
@@ -223,36 +244,36 @@
         }
         $totalMax = 0;
         @endphp
-        <div style="border: 2px solid {{ $isActive ? '#28a745' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isActive ? '#d4edda' : '#f8f9fa' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isActive ? 'border-emerald-300 bg-emerald-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isActive)
-            <div style="position: absolute; top: -12px; right: 10px; background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">{{ $template['name'] }}</h3>
-            <div style="margin-bottom: 1rem;">
-                <strong>Kriteria Penilaian:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <h3 class="text-base font-semibold text-slate-900">{{ $template['name'] }}</h3>
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Kriteria Penilaian:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach($template['fields'] as $field)
                     @php $totalMax += $field['max']; @endphp
-                    <li>{{ $field['label'] }} ({{ $field['max'] }} poin) @if($field['required'])<span style="color: red;">*</span>@endif</li>
+                    <li>{{ $field['label'] }} <span class="text-slate-400">({{ $field['max'] }} poin)</span> @if($field['required'])<span style="color: #e11d48;">*</span>@endif</li>
                     @endforeach
                 </ul>
-                <div style="margin-top: 0.5rem; padding: 0.5rem; background: #d1ecf1; border-radius: 5px; font-size: 0.875rem;">
-                    <strong>Total Maksimal:</strong> {{ $totalMax }} poin
+                <div class="mt-3 rounded-lg bg-white/80 px-3 py-2 ring-1 ring-slate-200">
+                    <strong class="font-semibold text-slate-900">Total Maksimal:</strong> {{ $totalMax }} poin
                 </div>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <form method="POST" action="{{ route('events.jury-form.template', [$event, $key]) }}" style="flex: 1;" id="templateForm{{ $key }}">
+            <div class="mt-5 flex gap-2">
+                <form method="POST" action="{{ route('events.jury-form.template', [$event, $key]) }}" class="flex-1" id="templateForm{{ $key }}">
                     @csrf
-                    <button type="button" class="btn btn-primary" style="width: 100%;"
+                    <button type="button" class="btn btn-primary w-full"
                         {{ $isActive ? 'disabled' : '' }}
-                        onclick="{{ $isActive ? '' : 'showConfirmModal(\'Gunakan Template?\', \'Form penilaian yang ada akan diganti dengan template ini.\', () => document.getElementById(\'templateForm' . $key . '\').submit())' }}">
-                        {{ $isActive ? '✓ Template Aktif' : 'Gunakan Template' }}
+                        onclick="{{ $isActive ? '' : 'showConfirmModal(\'Gunakan Template?\', \'Template ini akan ditambahkan sebagai form baru. Form yang ada tidak diubah.\', () => document.getElementById(\'templateForm' . $key . '\').submit())' }}">
+                        {{ $isActive ? 'Template Aktif' : 'Gunakan Template' }}
                     </button>
                 </form>
-                <button type="button" class="btn btn-info" style="width: 110px;" onclick="editJuryTemplate({{ json_encode($template['fields']) }}, '{{ $template['name'] }}')" title="Edit kriteria template">
-                    ✏️ Edit Kriteria
+                <button type="button" class="btn btn-info w-[112px] shrink-0" onclick="editJuryTemplate({{ json_encode($template['fields']) }}, '{{ $template['name'] }}')" title="Edit kriteria template">
+                    Edit Kriteria
                 </button>
             </div>
         </div>
@@ -268,56 +289,57 @@
         }
         $totalMaxCustom = array_sum(array_column($customTemplate->criteria_fields, 'max'));
         @endphp
-        <div style="border: 2px solid {{ $isActiveCustom ? '#28a745' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isActiveCustom ? '#d4edda' : '#fff' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isActiveCustom ? 'border-emerald-300 bg-emerald-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isActiveCustom)
-            <div style="position: absolute; top: -12px; right: 10px; background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">
-                <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem; margin-right: 0.5rem;">CUSTOM</span>
+            <h3 class="flex flex-wrap items-center gap-2 text-base font-semibold text-slate-900">
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">Custom</span>
                 {{ $customTemplate->name }}
             </h3>
             @if($customTemplate->description)
-            <p style="color: #666; margin-bottom: 1rem; font-size: 0.875rem;">{{ $customTemplate->description }}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ $customTemplate->description }}</p>
             @endif
-            <div style="margin-bottom: 1rem;">
-                <strong>Kriteria:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Kriteria:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach($customTemplate->criteria_fields as $field)
-                    <li>{{ $field['label'] }} ({{ $field['type'] }}{{ $field['type'] === 'score' ? ', max: ' . $field['max'] : '' }})</li>
+                    <li>{{ $field['label'] }} <span class="text-slate-400">({{ $field['type'] }}{{ $field['type'] === 'score' ? ', max: ' . $field['max'] : '' }})</span></li>
                     @endforeach
                 </ul>
-                <div style="margin-top: 0.5rem;">
-                    <strong>Total Maksimal:</strong> {{ $totalMaxCustom }} poin
+                <div class="mt-3 rounded-lg bg-white/80 px-3 py-2 ring-1 ring-slate-200">
+                    <strong class="font-semibold text-slate-900">Total Maksimal:</strong> {{ $totalMaxCustom }} poin
                 </div>
             </div>
-            <div style="font-size: 0.75rem; color: #666; margin-bottom: 1rem;">
-                Dibuat oleh: <strong>{{ $customTemplate->creator->name }}</strong> • {{ $customTemplate->created_at->diffForHumans() }}
+            <div class="mt-3 text-xs text-slate-500">
+                Dibuat oleh: <strong class="font-semibold text-slate-700">{{ $customTemplate->creator->name }}</strong>
+                <span class="px-1 text-slate-300">|</span> {{ $customTemplate->created_at->diffForHumans() }}
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <form method="POST" action="{{ route('events.jury-form.custom-template', ['event' => $event->id, 'customTemplate' => $customTemplate->id]) }}" style="flex: 1;" id="customTemplateForm{{ $customTemplate->id }}">
+            <div class="mt-5 flex gap-2">
+                <form method="POST" action="{{ route('events.jury-form.custom-template', ['event' => $event->id, 'customTemplate' => $customTemplate->id]) }}" class="flex-1" id="customTemplateForm{{ $customTemplate->id }}">
                     @csrf
-                    <button type="button" class="btn {{ $isActiveCustom ? 'btn-secondary' : 'btn-success' }}" style="width: 100%;"
+                    <button type="button" class="btn w-full {{ $isActiveCustom ? 'btn-secondary' : 'btn-success' }}"
                         {{ $isActiveCustom ? 'disabled' : '' }}
-                        onclick="{{ $isActiveCustom ? '' : 'showConfirmModal(\'Gunakan Template?\', \'Form penilaian yang ada akan diganti dengan template ini.\', () => document.getElementById(\'customTemplateForm' . $customTemplate->id . '\').submit())' }}">
-                        {{ $isActiveCustom ? '✓ Template Aktif' : 'Gunakan Template' }}
+                        onclick="{{ $isActiveCustom ? '' : 'showConfirmModal(\'Gunakan Template?\', \'Template ini akan ditambahkan sebagai form baru. Form yang ada tidak diubah.\', () => document.getElementById(\'customTemplateForm' . $customTemplate->id . '\').submit())' }}">
+                        {{ $isActiveCustom ? 'Template Aktif' : 'Gunakan Template' }}
                     </button>
                 </form>
-                <button type="button" class="btn btn-info" style="width: 110px;" onclick="editJuryTemplate({{ json_encode($customTemplate->criteria_fields) }}, '{{ addslashes($customTemplate->name) }}', {{ $customTemplate->id }})" title="Edit kriteria template">
-                    ✏️ Edit Kriteria
+                <button type="button" class="btn btn-info w-[112px] shrink-0" onclick="editJuryTemplate({{ json_encode($customTemplate->criteria_fields) }}, '{{ addslashes($customTemplate->name) }}', {{ $customTemplate->id }})" title="Edit kriteria template">
+                    Edit Kriteria
                 </button>
             </div>
             <!-- Tombol Edit & Hapus di bagian bawah -->
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                <button type="button" class="btn btn-sm btn-warning" style="flex: 1;" onclick="editCustomJuryTemplate({{ $customTemplate->id }}, '{{ addslashes($customTemplate->name) }}', '{{ addslashes($customTemplate->description ?? '') }}', {{ json_encode($customTemplate->criteria_fields) }}, {{ $customTemplate->use_default_score ? 'true' : 'false' }})" title="Edit nama, deskripsi, dan kriteria template">
-                    📝 Edit Data Template
+            <div class="mt-4 flex gap-2 border-t border-slate-200 pt-4">
+                <button type="button" class="btn btn-sm btn-warning flex-1" onclick="editCustomJuryTemplate({{ $customTemplate->id }}, '{{ addslashes($customTemplate->name) }}', '{{ addslashes($customTemplate->description ?? '') }}', {{ json_encode($customTemplate->criteria_fields) }}, {{ $customTemplate->use_default_score ? 'true' : 'false' }})" title="Edit nama, deskripsi, dan kriteria template">
+                    Edit Data Template
                 </button>
-                <form method="POST" action="{{ route('custom-jury-templates.delete', $customTemplate->id) }}" style="flex: 1;" id="deleteTemplateForm{{ $customTemplate->id }}">
+                <form method="POST" action="{{ route('custom-jury-templates.delete', $customTemplate->id) }}" class="flex-1" id="deleteTemplateForm{{ $customTemplate->id }}">
                     @csrf
                     @method('DELETE')
-                    <button type="button" class="btn btn-sm btn-danger" style="width: 100%;" title="Hapus Template" onclick="showConfirmModal('Hapus Template?', 'Template akan dihapus permanen.', () => document.getElementById('deleteTemplateForm{{ $customTemplate->id }}').submit())">
-                        🗑️ Hapus Template
+                    <button type="button" class="btn btn-sm btn-danger w-full" title="Hapus Template" onclick="showConfirmModal('Hapus Template?', 'Template akan dihapus permanen.', () => document.getElementById('deleteTemplateForm{{ $customTemplate->id }}').submit())">
+                        Hapus Template
                     </button>
                 </form>
             </div>
@@ -344,7 +366,7 @@
     // Preview Jury Template Function
     function previewJuryTemplate(fields, templateName) {
         if (!fields || fields.length === 0) {
-            alert('❌ Template ini tidak memiliki kriteria untuk dipratinjau.');
+            alert('Template ini tidak memiliki kriteria untuk dipratinjau.');
             return;
         }
 
@@ -364,7 +386,7 @@
                         min="0" max="${field.max}" 
                         placeholder="0 - ${field.max}"
                         ${field.required ? 'required' : ''}>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;">Maksimal: ${field.max} poin</small>
+                    <small style="color: #64748b; display: block; margin-top: 0.25rem;">Maksimal: ${field.max} poin</small>
                 `;
             } else if (field.type === 'textarea') {
                 inputHTML = `<textarea class="form-control" rows="4" placeholder="Masukkan ${field.label.toLowerCase()}" ${field.required ? 'required' : ''}></textarea>`;
@@ -379,11 +401,11 @@
             }
             
             fieldsHTML += `
-                <div class="form-group" style="margin-bottom: 1.5rem; padding: 1rem; background: ${field.type === 'score' ? '#f0f8ff' : '#f8f9fa'}; border-radius: 8px; border-left: 4px solid ${field.type === 'score' ? '#667eea' : '#6c757d'};">
-                    <label style="font-weight: bold; margin-bottom: 0.5rem; display: block; color: #333;">
+                <div class="form-group" style="margin-bottom: 1.5rem; padding: 1rem; background: ${field.type === 'score' ? '#eef2ff' : '#f8fafc'}; border-radius: 10px; border-left: 4px solid ${field.type === 'score' ? '#4f46e5' : '#cbd5e1'};">
+                    <label style="font-weight: 600; margin-bottom: 0.5rem; display: block; color: #0f172a;">
                         ${index + 1}. ${field.label}
-                        ${field.required ? '<span style="color: red;">*</span>' : ''}
-                        ${field.type === 'score' ? `<span style="float: right; background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">${field.max} poin</span>` : ''}
+                        ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
+                        ${field.type === 'score' ? `<span style="float: right; background: #4f46e5; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">${field.max} poin</span>` : ''}
                     </label>
                     ${inputHTML}
                 </div>
@@ -391,27 +413,27 @@
         });
 
         modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="margin: 0;">👁️ Preview: ${templateName}</h3>
-                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Preview: ${templateName}</h3>
+                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; line-height: 1; color: #64748b; cursor: pointer;">&times;</button>
                 </div>
-                <div style="background: #2563eb; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; color: white;">
-                    <p style="margin: 0; font-size: 0.875rem;">
-                        <strong>ℹ️ Ini adalah preview template form penilaian juri.</strong><br>
+                <div style="background: #eef2ff; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #4f46e5;">
+                    <p style="margin: 0; font-size: 0.875rem; color: #475569;">
+                        <strong style="color: #3730a3;">Ini adalah preview template form penilaian juri.</strong><br>
                         Kriteria di bawah ini akan digunakan juri untuk menilai peserta jika template ini diterapkan.
                     </p>
-                    ${totalMax > 0 ? `<div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(255,255,255,0.2); border-radius: 5px; text-align: center;">
+                    ${totalMax > 0 ? `<div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(79,70,229,0.1); border-radius: 6px; text-align: center; color: #3730a3;">
                         <strong>Total Maksimal Nilai: ${totalMax} poin</strong>
                     </div>` : ''}
                 </div>
                 <form onsubmit="event.preventDefault(); alert('Ini hanya preview, penilaian tidak akan tersimpan.');">
                     ${fieldsHTML}
-                    <div style="margin-top: 1.5rem; padding: 1rem; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #0d6efd;">
-                        <strong style="display: block; margin-bottom: 0.5rem;">Total Nilai</strong>
-                        <input type="text" class="form-control" value="0 / ${totalMax}" readonly style="font-weight: bold; font-size: 1.1rem; text-align: center;">
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 10px; border-left: 4px solid #4f46e5;">
+                        <strong style="display: block; margin-bottom: 0.5rem; color: #0f172a;">Total Nilai</strong>
+                        <input type="text" class="form-control" value="0 / ${totalMax}" readonly style="font-weight: 600; font-size: 1.1rem; text-align: center;">
                     </div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: 100%; padding: 0.75rem;">Simpan Penilaian (Preview)</button>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Simpan Penilaian (Preview)</button>
                 </form>
             </div>
         `;
@@ -438,16 +460,18 @@
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s;';
         modal.innerHTML = `
-            <div style="background: white; border-radius: 16px; padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s;" onclick="event.stopPropagation()">
-                <div style="width: 80px; height: 80px; background: #16a34a; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-                    <span style="font-size: 3rem; color: white;">✓</span>
+            <div style="background: #ffffff; border-radius: 16px; padding: 2.5rem; max-width: 450px; width: 90%; text-align: center; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.25); animation: slideUp 0.3s;" onclick="event.stopPropagation()">
+                <div style="width: 64px; height: 64px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 30px; height: 30px; color: #059669;" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7" />
+                    </svg>
                 </div>
-                <h2 style="margin: 0 0 1rem 0; color: #333; font-size: 1.75rem; font-weight: bold;">Berhasil Disimpan!</h2>
-                <p style="margin: 0 0 2rem 0; color: #666; font-size: 1.05rem; line-height: 1.6;">
+                <h2 style="margin: 0 0 0.75rem 0; color: #0f172a; font-size: 1.5rem; font-weight: 600;">Berhasil Disimpan!</h2>
+                <p style="margin: 0 0 2rem 0; color: #64748b; font-size: 0.9375rem; line-height: 1.6;">
                     Form penilaian juri telah berhasil disimpan.<br>
                     Perubahan sudah diterapkan ke event ini.
                 </p>
-                <button onclick="this.closest('div[style*=fixed]').remove()" class="btn-premium btn-premium-success" style="padding: 0.875rem 2.5rem; border-radius: 8px; font-size: 1.05rem; border: none; cursor: pointer;">
+                <button onclick="this.closest('div[style*=fixed]').remove()" class="btn-premium btn-premium-success" style="cursor: pointer;">
                     OK, Mengerti
                 </button>
             </div>
@@ -497,16 +521,16 @@
         let totalMax = 0;
         console.log('8. Starting to build preview HTML...');
         let previewHTML = `
-            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;" onclick="this.remove()">
-                <div style="background: white; border-radius: 8px; padding: 2rem; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto;" onclick="event.stopPropagation()">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #3498db; padding-bottom: 1rem;">
-                        <h2 style="margin: 0; color: #3498db;">👁️ Preview Form Penilaian Juri</h2>
-                        <button onclick="this.closest('div[style*=fixed]').remove()" style="background: #e74c3c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 1rem;">✕ Tutup</button>
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;" onclick="this.remove()">
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 45px rgba(15,23,42,0.25);" onclick="event.stopPropagation()">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+                        <h2 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: #0f172a;">Preview Form Penilaian Juri</h2>
+                        <button onclick="this.closest('div[style*=fixed]').remove()" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 600;">Tutup</button>
                     </div>
                     
-                    <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #27ae60;">
-                        <h3 style="margin-top: 0; color: #27ae60;">📊 Kriteria Penilaian</h3>
-                        <p style="color: #666; margin-bottom: 1rem;">Ini adalah preview form yang akan dilihat oleh juri</p>
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #4f46e5;">
+                        <h3 style="margin-top: 0; font-size: 1rem; font-weight: 600; color: #0f172a;">Kriteria Penilaian</h3>
+                        <p style="color: #64748b; margin-bottom: 0;">Ini adalah preview form yang akan dilihat oleh juri</p>
         `;
 
         fields.forEach((field, index) => {
@@ -516,16 +540,16 @@
                 totalMax += field.max;
                 console.log(`   -> Total max updated to: ${totalMax}`);
                 previewHTML += `
-                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #0f172a;">
                             ${field.label}
-                            ${field.required ? '<span style="color: red;">*</span>' : ''}
-                            <span style="color: #27ae60; font-weight: bold;">(Max: ${field.max} poin)</span>
+                            ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
+                            <span style="color: #4f46e5; font-weight: 600;">(Max: ${field.max} poin)</span>
                         </label>
-                        ${field.description ? `<p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
+                        ${field.description ? `<p style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
                         <input 
                             type="number" 
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;"
+                            style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; background: #f8fafc;"
                             placeholder="0 - ${field.max}"
                             min="0"
                             max="${field.max}"
@@ -535,14 +559,14 @@
                 `;
             } else if (field.type === 'textarea') {
                 previewHTML += `
-                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #0f172a;">
                             ${field.label}
-                            ${field.required ? '<span style="color: red;">*</span>' : ''}
+                            ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
                         </label>
-                        ${field.description ? `<p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
+                        ${field.description ? `<p style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
                         <textarea 
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;"
+                            style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; background: #f8fafc;"
                             rows="3"
                             disabled
                         ></textarea>
@@ -550,15 +574,15 @@
                 `;
             } else {
                 previewHTML += `
-                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #0f172a;">
                             ${field.label}
-                            ${field.required ? '<span style="color: red;">*</span>' : ''}
+                            ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
                         </label>
-                        ${field.description ? `<p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
+                        ${field.description ? `<p style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
                         <input 
                             type="text" 
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;"
+                            style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; background: #f8fafc;"
                             disabled
                         >
                     </div>
@@ -569,10 +593,10 @@
         if (totalMax > 0) {
             console.log('10. Total max calculated:', totalMax);
             previewHTML += `
-                <div style="background: white; padding: 1rem; border-radius: 5px; margin-top: 1rem; border: 2px solid #27ae60;">
-                    <strong style="color: #27ae60; font-size: 1.125rem;">Total Maksimal Poin: ${totalMax}</strong>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #666;">
-                        ${useDefaultScore ? '✓ Nilai akhir akan dihitung otomatis dari total kriteria penilaian' : 'Juri akan memasukkan nilai total manual'}
+                <div style="background: #ecfdf5; padding: 1rem; border-radius: 10px; margin-top: 1rem; border: 1px solid #a7f3d0;">
+                    <strong style="color: #047857; font-size: 1.125rem;">Total Maksimal Poin: ${totalMax}</strong>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">
+                        ${useDefaultScore ? 'Nilai akhir akan dihitung otomatis dari total kriteria penilaian' : 'Juri akan memasukkan nilai total manual'}
                     </p>
                 </div>
             `;
@@ -582,29 +606,29 @@
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Feedback Publik</label>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #0f172a;">Feedback Publik</label>
                         <textarea 
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;"
+                            style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; background: #f8fafc;"
                             rows="4"
                             placeholder="Feedback yang dapat dilihat oleh peserta..."
                             disabled
                         ></textarea>
-                        <small style="color: #666;">Feedback ini akan terlihat oleh peserta dan publik</small>
+                        <small style="color: #64748b;">Feedback ini akan terlihat oleh peserta dan publik</small>
                     </div>
                     
                     <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Evaluasi Private</label>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #0f172a;">Evaluasi Private</label>
                         <textarea 
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;"
+                            style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; background: #f8fafc;"
                             rows="4"
-                            placeholder="Evaluasi internal untuk organizer dan admin..."
+                            placeholder="Evaluasi internal untuk admin..."
                             disabled
                         ></textarea>
-                        <small style="color: #666;">Evaluasi ini hanya terlihat oleh organizer, admin, dan juri</small>
+                        <small style="color: #64748b;">Evaluasi ini hanya terlihat oleh admin dan juri</small>
                     </div>
                     
-                    <div style="text-align: center; padding-top: 1rem; border-top: 2px solid #ddd;">
-                        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-primary" style="font-size: 1.125rem; padding: 1rem 2rem;">
+                    <div style="text-align: center; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-primary" style="font-size: 1rem; padding: 0.75rem 2rem;">
                             Tutup Preview
                         </button>
                     </div>
@@ -617,7 +641,7 @@
         console.log('12. Preview modal inserted successfully');
         console.log('=== END PREVIEW FUNCTION DEBUG ===');
         @else
-        alert('❌ Tidak ada form penilaian untuk di-preview.\n\nSilakan buat form penilaian terlebih dahulu.');
+        alert('Tidak ada form penilaian untuk di-preview.\n\nSilakan buat form penilaian terlebih dahulu.');
         @endif
     }
 
@@ -626,14 +650,14 @@
         const useDefaultScore = @json($existingForm ? $existingForm->use_default_score : false);
 
         if (!existingFields || existingFields.length === 0) {
-            alert('❌ Tidak ada form penilaian yang bisa diedit.');
+            alert('Tidak ada form penilaian yang bisa diedit.');
             return;
         }
 
         // Clear current fields
         const container = document.getElementById('criteriaContainer');
         if (!container) {
-            alert('❌ Form builder tidak ditemukan.');
+            alert('Form builder tidak ditemukan.');
             return;
         }
         container.innerHTML = '';
@@ -650,7 +674,7 @@
             const criteriaItem = document.createElement('div');
             criteriaItem.className = 'criteria-item';
             criteriaItem.setAttribute('data-index', index);
-            criteriaItem.style.cssText = 'border: 1px solid #dadce0; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: box-shadow 0.3s;';
+            criteriaItem.style.cssText = 'border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: box-shadow 0.3s;';
 
             // Add hover effect
             criteriaItem.onmouseenter = function() {
@@ -665,8 +689,8 @@
                 <div style="flex: 1;">
                     <input type="text" class="form-control criteria-label" value="${field.label || ''}" 
                            placeholder="Kriteria penilaian tanpa judul" 
-                           style="font-size: 1rem; font-weight: 500; border: none; border-bottom: 1px solid #dadce0; border-radius: 0; padding: 0.5rem 0; background: transparent;"
-                           onfocus="this.style.borderBottom='2px solid #1a73e8'" onblur="this.style.borderBottom='1px solid #dadce0'">
+                           style="font-size: 1rem; font-weight: 500; border: none; border-bottom: 1px solid #e2e8f0; border-radius: 0; padding: 0.5rem 0; background: transparent;"
+                           onfocus="this.style.borderBottom='2px solid #4f46e5'" onblur="this.style.borderBottom='1px solid #e2e8f0'">
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="duplicateCriteria(this)" title="Duplikat" style="padding: 0.25rem 0.5rem;">
@@ -684,25 +708,25 @@
             </div>
             
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <select class="form-control criteria-type" style="max-width: 180px; border: 1px solid #dadce0; border-radius: 4px;">
-                    <option value="score" ${field.type === 'score' ? 'selected' : ''}>📊 Nilai Poin</option>
-                    <option value="text" ${field.type === 'text' ? 'selected' : ''}>📝 Text</option>
-                    <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>📄 Paragraf</option>
+                <select class="form-control criteria-type" style="max-width: 180px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                    <option value="score" ${field.type === 'score' ? 'selected' : ''}>Nilai Poin</option>
+                    <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                    <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>Paragraf</option>
                 </select>
                 
                 <div class="form-group max-score-field" style="display: ${field.type === 'score' ? 'block' : 'none'}; margin: 0;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <label style="margin: 0; font-size: 0.875rem; color: #5f6368; white-space: nowrap;">Max:</label>
+                        <label style="margin: 0; font-size: 0.875rem; color: #64748b; white-space: nowrap;">Max:</label>
                         <input type="number" class="form-control criteria-max" value="${field.max || 25}" min="1" max="100" 
-                               style="width: 80px; border: 1px solid #dadce0; border-radius: 4px; padding: 0.375rem 0.5rem;">
-                        <span style="font-size: 0.875rem; color: #5f6368;">poin</span>
+                               style="width: 80px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.375rem 0.5rem;">
+                        <span style="font-size: 0.875rem; color: #64748b;">poin</span>
                     </div>
                 </div>
                 
                 <div style="flex: 1;"></div>
                 
                 <label style="display: flex; align-items: center; gap: 0.5rem; margin: 0; cursor: pointer;">
-                    <span style="font-size: 0.875rem; color: #5f6368;">Wajib</span>
+                    <span style="font-size: 0.875rem; color: #64748b;">Wajib</span>
                     <input type="checkbox" class="criteria-required" ${field.required ? 'checked' : ''} 
                            style="width: 18px; height: 18px; cursor: pointer;">
                 </label>
@@ -734,7 +758,7 @@
         });
 
         // Highlight form builder
-        formBuilder.style.backgroundColor = '#e8f0fe';
+        formBuilder.style.backgroundColor = '#eef2ff';
         setTimeout(() => {
             formBuilder.style.transition = 'background-color 1s';
             formBuilder.style.backgroundColor = 'white';
@@ -790,7 +814,7 @@
         });
 
         // Highlight form builder with blue background
-        formBuilder.style.backgroundColor = '#e3f2fd';
+        formBuilder.style.backgroundColor = '#eef2ff';
         setTimeout(() => {
             formBuilder.style.transition = 'background-color 1s';
             formBuilder.style.backgroundColor = 'white';
@@ -809,7 +833,7 @@
             // Highlight template cards area
             const cardGrid = templateSection.parentElement.querySelector('div[style*="grid"]');
             if (cardGrid) {
-                cardGrid.style.backgroundColor = '#f0f8ff';
+                cardGrid.style.backgroundColor = '#eef2ff';
                 setTimeout(() => {
                     cardGrid.style.transition = 'background-color 1s';
                     cardGrid.style.backgroundColor = 'transparent';
@@ -858,16 +882,16 @@
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
         modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
-            <h3 style="margin-bottom: 1rem;">💾 Simpan Sebagai Template</h3>
+        <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Simpan Sebagai Template</h3>
             <form method="POST" action="{{ route('events.jury-form.save-template', $event->id) }}">
                 @csrf
                 <div class="form-group">
-                    <label>Nama Template *</label>
+                    <label class="form-label">Nama Template *</label>
                     <input type="text" name="template_name" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Deskripsi</label>
+                    <label class="form-label">Deskripsi</label>
                     <textarea name="template_description" class="form-control" rows="3"></textarea>
                 </div>
                 <input type="hidden" name="criteria_fields" value='${criteriaFields}'>
@@ -887,17 +911,17 @@
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
         modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
-            <h3 style="margin-bottom: 1rem;">✏️ Edit Template</h3>
+        <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Edit Template</h3>
             <form method="POST" action="/custom-jury-templates/${id}">
                 @csrf
                 @method('PUT')
                 <div class="form-group">
-                    <label>Nama Template *</label>
+                    <label class="form-label">Nama Template *</label>
                     <input type="text" name="name" class="form-control" value="${name}" required>
                 </div>
                 <div class="form-group">
-                    <label>Deskripsi</label>
+                    <label class="form-label">Deskripsi</label>
                     <textarea name="description" class="form-control" rows="3">${description}</textarea>
                 </div>
                 <input type="hidden" name="criteria_fields" value='${JSON.stringify(fields)}'>
@@ -918,20 +942,22 @@
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s;';
         
         modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s;" onclick="event.stopPropagation()">
+            <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.25); max-width: 450px; width: 90%; animation: slideUp 0.3s;" onclick="event.stopPropagation()">
                 <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <div style="width: 70px; height: 70px; background: #2563eb; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-                        <span style="font-size: 2.5rem; color: white;">❓</span>
+                    <div style="width: 64px; height: 64px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width: 28px; height: 28px; color: #4f46e5;" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                        </svg>
                     </div>
-                    <h3 style="margin: 0 0 0.5rem 0; color: #333; font-size: 1.5rem; font-weight: bold;">${title}</h3>
-                    <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">${message}</p>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.25rem; font-weight: 600;">${title}</h3>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9375rem; line-height: 1.6;">${message}</p>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
-                    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary" style="flex: 1; padding: 0.75rem; border-radius: 8px; font-size: 1rem;">
-                        ❌ Batal
+                    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary" style="flex: 1;">
+                        Batal
                     </button>
-                    <button id="confirmBtn" class="btn-premium btn-premium-primary" style="flex: 1; padding: 0.75rem; border-radius: 8px; font-size: 1rem; border: none;">
-                        ✅ Ya, Lanjutkan
+                    <button id="confirmBtn" class="btn-premium btn-premium-primary" style="flex: 1;">
+                        Ya, Lanjutkan
                     </button>
                 </div>
             </div>
@@ -970,35 +996,38 @@
             criteriaItem.className = 'criteria-item';
             criteriaItem.setAttribute('data-index', index);
             criteriaItem.setAttribute('draggable', 'true');
-            criteriaItem.style.cssText = 'border: 1px solid #dadce0; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 8px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s; cursor: move;';
+            criteriaItem.style.cssText = 'border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 8px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s; cursor: move;';
 
             criteriaItem.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
-                    <span class="drag-handle" style="font-size: 1.2rem; color: #5f6368; cursor: grab; padding: 0.25rem; user-select: none;">⋮⋮</span>
-                    <input type="text" class="form-control criteria-label" value="${field.label}" style="border: none; border-bottom: 1px solid #dadce0; font-size: 1.1rem; font-weight: 500; padding: 0.5rem 0; background: transparent; flex: 1; margin-right: 1rem; cursor: text;" placeholder="Nama Kriteria" required>
+                    <span class="drag-handle" style="font-size: 1.2rem; color: #64748b; cursor: grab; padding: 0.25rem; user-select: none;">⋮⋮</span>
+                    <input type="text" class="form-control criteria-label" value="${field.label}" style="border: none; border-bottom: 1px solid #e2e8f0; font-size: 1.1rem; font-weight: 500; padding: 0.5rem 0; background: transparent; flex: 1; margin-right: 1rem; cursor: text;" placeholder="Nama Kriteria" required>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <button type="button" class="btn btn-sm" onclick="duplicateCriteria(this)" title="Duplikat Kriteria" style="background: transparent; border: none; font-size: 1.2rem; padding: 0.25rem 0.5rem; cursor: pointer;">📋</button>
-                    <button type="button" class="btn btn-sm" onclick="this.closest('.criteria-item').remove()" title="Hapus Kriteria" style="background: transparent; border: none; color: #dc3545; font-size: 1.2rem; padding: 0.25rem 0.5rem; cursor: pointer;">🗑️</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="duplicateCriteria(this)" title="Duplikat Kriteria" aria-label="Duplikat Kriteria" style="padding: 0.35rem 0.5rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2M6 8h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" /></svg>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.criteria-item').remove()" title="Hapus Kriteria" aria-label="Hapus Kriteria" style="padding: 0.35rem 0.5rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6m4-6v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>
+                    </button>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 0.9rem; color: #5f6368;">📊</span>
-                    <select class="form-control criteria-type" style="border: none; background: #f1f3f4; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; color: #202124; cursor: pointer;">
+                    <select class="form-control criteria-type" style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.875rem; color: #0f172a; cursor: pointer;">
                         <option value="score" ${field.type === 'score' ? 'selected' : ''}>Nilai Poin</option>
                         <option value="text" ${field.type === 'text' ? 'selected' : ''}>Teks Panjang</option>
                     </select>
                 </div>
                 <div class="max-score-field" style="display: ${field.type === 'score' ? 'flex' : 'none'}; align-items: center; gap: 0.5rem;">
-                    <label style="margin: 0; font-size: 0.9rem; color: #5f6368;">Max:</label>
-                    <input type="number" class="form-control criteria-max" value="${field.max || 30}" min="1" max="100" style="border: 1px solid #dadce0; width: 80px; padding: 0.5rem; border-radius: 4px; text-align: center; font-size: 0.9rem;">
-                    <span style="font-size: 0.9rem; color: #5f6368;">poin</span>
+                    <label style="margin: 0; font-size: 0.9rem; color: #64748b;">Max:</label>
+                    <input type="number" class="form-control criteria-max" value="${field.max || 30}" min="1" max="100" style="border: 1px solid #e2e8f0; width: 80px; padding: 0.5rem; border-radius: 4px; text-align: center; font-size: 0.9rem;">
+                    <span style="font-size: 0.9rem; color: #64748b;">poin</span>
                 </div>
                 <div style="margin-left: auto; display: flex; align-items: center;">
-                    <label style="margin: 0; font-size: 0.9rem; color: #5f6368; margin-right: 0.5rem;">Wajib</label>
-                    <input type="checkbox" class="criteria-required" ${field.required ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; accent-color: #1a73e8;">
+                    <label style="margin: 0; font-size: 0.9rem; color: #64748b; margin-right: 0.5rem;">Wajib</label>
+                    <input type="checkbox" class="criteria-required" ${field.required ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; accent-color: #4f46e5;">
                 </div>
             </div>
         `;
@@ -1040,7 +1069,7 @@
             });
 
             // Highlight form builder
-            formBuilder.style.backgroundColor = '#e8f0fe';
+            formBuilder.style.backgroundColor = '#eef2ff';
             setTimeout(() => {
                 formBuilder.style.transition = 'background-color 1s';
                 formBuilder.style.backgroundColor = 'white';

@@ -6,15 +6,17 @@
 
 <!-- Success Modal -->
 @if(session('template_success'))
-<div id="successModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.3s;">
-    <div style="background: white; padding: 3rem; border-radius: 20px; text-align: center; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
-        <div style="width: 80px; height: 80px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-            <span style="font-size: 3rem; animation: checkPulse 0.6s;">✓</span>
+<div id="successModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 p-4" style="animation: fadeIn 0.3s;">
+    <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl" style="animation: slideUp 0.3s;">
+        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 ring-1 ring-emerald-200" style="animation: checkPulse 0.6s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="h-8 w-8 text-emerald-600" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7" />
+            </svg>
         </div>
-        <h2 style="font-size: 1.75rem; font-weight: bold; color: #2c3e50; margin-bottom: 1rem;">Berhasil!</h2>
-        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">{{ session('template_success') }}</p>
-        <div style="display: inline-block; padding: 0.5rem 1rem; background: #e8f5e9; border-radius: 8px; color: #4caf50; font-size: 0.9rem;">
-            <div class="spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #4caf50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 0.5rem;"></div>
+        <h2 class="text-2xl font-semibold tracking-tight text-slate-900">Berhasil!</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">{{ session('template_success') }}</p>
+        <div class="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+            <span class="spinner" style="display: inline-block; width: 12px; height: 12px; border: 2px solid #cbd5e1; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
             Menutup otomatis...
         </div>
     </div>
@@ -71,39 +73,48 @@
 </script>
 @endif
 
-<div class="card">
-    <div style="margin-bottom: 1rem;">
-        <a href="{{ route('events.show', $event) }}" style="color: #3498db; text-decoration: none;">
-            ← Kembali ke Detail Event
-        </a>
+<div class="page-header">
+    <a href="{{ route('events.show', $event) }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-indigo-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m0 0 6-6m-6 6 6 6" />
+        </svg>
+        Kembali ke Detail Event
+    </a>
+
+    <div class="mt-4">
+        <h1>Kelola Form Pendaftaran</h1>
+        <p>{{ $event->name }}</p>
     </div>
 
-    <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem;">Kelola Form Pendaftaran</h1>
-    <h2 style="font-size: 1.25rem; color: #666; margin-bottom: 1.5rem;">{{ $event->name }}</h2>
-
     @if($existingForm)
-    <div class="alert alert-success">
-        ✅ Event ini sudah memiliki form pendaftaran
-        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
-            <a href="{{ route('events.form.custom', $event) }}" class="btn btn-warning" style="padding: 0.5rem 1rem; font-size: 0.875rem; text-decoration: none;">
-                ✏️ Edit Form Custom
-            </a>
-            <button type="button" class="btn btn-primary" onclick="showRegistrationPreview()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                👁️ Preview Form
-            </button>
+    <div class="alert alert-success mt-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm font-medium">Event ini sudah memiliki form pendaftaran</p>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('events.form.custom', $event) }}" class="btn btn-warning">
+                    Edit Form Custom
+                </a>
+                <button type="button" class="btn btn-primary" onclick="showRegistrationPreview()">
+                    Preview Form
+                </button>
+            </div>
         </div>
     </div>
     @else
-    <div class="alert alert-warning">
-        ⚠️ Event ini belum memiliki form pendaftaran. Peserta hanya perlu data dasar saja.
+    <div class="alert alert-warning mt-5">
+        Event ini belum memiliki form pendaftaran. Peserta hanya perlu data dasar saja.
     </div>
     @endif
 </div>
 
 <!-- Template Form -->
 <div class="card">
-    <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem;">📋 Pilih Template Form</h2>
-    <p style="color: #666; margin-bottom: 1.5rem;">Gunakan template yang sudah tersedia untuk mempermudah pembuatan form</p>
+    <div class="premium-card-header">
+        <div>
+            <h2 class="premium-card-title">Pilih Template Form</h2>
+            <p class="mt-1 text-sm text-slate-500">Gunakan template yang sudah tersedia untuk mempermudah pembuatan form</p>
+        </div>
+    </div>
 
     @php
     // Check if using custom form (not matching any template, including custom templates)
@@ -131,39 +142,47 @@
     }
     @endphp
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <!-- Custom Form Card -->
-        <div style="border: 2px solid {{ $isCustomForm ? '#2196f3' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isCustomForm ? '#e3f2fd' : '#f8f9fa' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isCustomForm ? 'border-indigo-300 bg-indigo-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isCustomForm)
-            <div style="position: absolute; top: -12px; right: 10px; background: #2196f3; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">🎨 Form Custom</h3>
-            <div style="margin-bottom: 1rem;">
-                <strong>Fitur:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <h3 class="flex items-center gap-2 text-base font-semibold text-slate-900">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5 text-indigo-500" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1" />
+                    <circle cx="15" cy="6" r="2" />
+                    <circle cx="9" cy="12" r="2" />
+                    <circle cx="17" cy="18" r="2" />
+                </svg>
+                Form Custom
+            </h3>
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Fitur:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     <li>Buat form sesuai kebutuhan Anda</li>
                     <li>Tambah/hapus field sesuka hati</li>
                     <li>Duplikasi field dengan mudah</li>
                     <li>Edit dengan Google Form style</li>
                 </ul>
                 @if($isCustomForm && $existingForm)
-                <div style="margin-top: 0.5rem; padding: 0.5rem; background: #bbdefb; border-radius: 5px; font-size: 0.875rem;">
-                    <strong>Total Field:</strong> {{ count($existingForm->form_fields) }} field
+                <div class="mt-3 rounded-lg bg-white/80 px-3 py-2 ring-1 ring-indigo-200">
+                    <strong class="font-semibold text-slate-900">Total Field:</strong> {{ count($existingForm->form_fields) }} field
                 </div>
                 @endif
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="mt-5 flex flex-col gap-2">
                 @if($isCustomForm)
-                <a href="{{ route('events.form.custom', $event) }}" class="btn btn-success" style="width: 100%; text-decoration: none; display: inline-block; text-align: center;">
-                    ✏️ Edit Custom Form
+                <a href="{{ route('events.form.custom', $event) }}" class="btn btn-success w-full">
+                    Edit Custom Form
                 </a>
-                <button type="button" class="btn btn-outline-secondary" style="width: 100%;" onclick="showTemplateSelection()">
-                    📋 Gunakan Template
+                <button type="button" class="btn btn-outline-secondary w-full" onclick="showTemplateSelection()">
+                    Gunakan Template
                 </button>
                 @else
-                <a href="{{ route('events.form.custom', $event) }}" class="btn btn-primary" style="width: 100%; text-decoration: none; display: inline-block; text-align: center;">
+                <a href="{{ route('events.form.custom', $event) }}" class="btn btn-primary w-full">
                     Buat Form Custom
                 </a>
                 @endif
@@ -179,37 +198,37 @@
             $isActive = json_encode($template['fields']) === json_encode($existingForm->form_fields);
         }
         @endphp
-        <div style="border: 2px solid {{ $isActive ? '#28a745' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isActive ? '#d4edda' : '#f8f9fa' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isActive ? 'border-emerald-300 bg-emerald-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isActive)
-            <div style="position: absolute; top: -12px; right: 10px; background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">{{ $template['name'] }}</h3>
+            <h3 class="text-base font-semibold text-slate-900">{{ $template['name'] }}</h3>
             @if(isset($template['description']))
-            <p style="color: #666; margin-bottom: 1rem; font-size: 0.875rem;">{{ $template['description'] }}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ $template['description'] }}</p>
             @endif
-            <div style="margin-bottom: 1rem;">
-                <strong>Field:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Field:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach($template['fields'] as $field)
-                    <li>{{ $field['label'] }} ({{ $field['type'] }})</li>
+                    <li>{{ $field['label'] }} <span class="text-slate-400">({{ $field['type'] }})</span></li>
                     @endforeach
                 </ul>
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <form method="POST" action="{{ route('events.form.template', ['event' => $event->id, 'template' => $key]) }}" style="flex: 1;" id="eventTemplateForm{{ $key }}">
+            <div class="mt-5 flex gap-2">
+                <form method="POST" action="{{ route('events.form.template', ['event' => $event->id, 'template' => $key]) }}" class="flex-1" id="eventTemplateForm{{ $key }}">
                     @csrf
-                    <button type="button" class="btn {{ $isActive ? 'btn-secondary' : 'btn-primary' }}" style="width: 100%;"
+                    <button type="button" class="btn w-full {{ $isActive ? 'btn-secondary' : 'btn-primary' }}"
                         @if($isActive) disabled @endif
                         @if(!$isActive) onclick="showConfirmModal('Gunakan Template?', 'Form pendaftaran yang ada akan diganti dengan template ini.', () => document.getElementById('eventTemplateForm{{ $key }}').submit())" @endif>
-                        {{ $isActive ? '✓ Template Aktif' : 'Gunakan Template' }}
+                        {{ $isActive ? 'Template Aktif' : 'Gunakan Template' }}
                     </button>
                 </form>
-                <button type="button" class="btn btn-info" style="width: 100px;"
+                <button type="button" class="btn btn-info w-[104px] shrink-0"
                     onclick="editTemplateForm({{ json_encode($template['fields']) }}, '{{ $template['name'] }}')"
                     title="Edit field template">
-                    ✏️ Edit Field
+                    Edit Field
                 </button>
             </div>
         </div>
@@ -224,56 +243,57 @@
             $isActiveCustom = json_encode($customTemplate->form_fields) === json_encode($existingForm->form_fields);
         }
         @endphp
-        <div style="border: 2px solid {{ $isActiveCustom ? '#28a745' : '#ddd' }}; border-radius: 8px; padding: 1.5rem; background: {{ $isActiveCustom ? '#d4edda' : '#fff' }}; position: relative;">
+        <div class="relative flex flex-col rounded-2xl border p-6 transition {{ $isActiveCustom ? 'border-emerald-300 bg-emerald-50/60 shadow-sm' : 'border-slate-200 bg-white hover:border-indigo-200 hover:shadow-sm' }}">
             @if($isActiveCustom)
-            <div style="position: absolute; top: -12px; right: 10px; background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                ✓ SEDANG DIGUNAKAN
-            </div>
+            <span class="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                Sedang digunakan
+            </span>
             @endif
-            <h3 style="font-size: 1.125rem; font-weight: bold; margin-bottom: 0.75rem;">
-                <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.75rem; margin-right: 0.5rem;">CUSTOM</span>
+            <h3 class="flex flex-wrap items-center gap-2 text-base font-semibold text-slate-900">
+                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">Custom</span>
                 {{ $customTemplate->name }}
             </h3>
             @if($customTemplate->description)
-            <p style="color: #666; margin-bottom: 1rem; font-size: 0.875rem;">{{ $customTemplate->description }}</p>
+            <p class="mt-1 text-sm text-slate-500">{{ $customTemplate->description }}</p>
             @endif
-            <div style="margin-bottom: 1rem;">
-                <strong>Field:</strong>
-                <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.875rem;">
+            <div class="mt-3 text-sm text-slate-600">
+                <strong class="font-semibold text-slate-900">Field:</strong>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
                     @foreach($customTemplate->form_fields as $field)
-                    <li>{{ $field['label'] }} ({{ $field['type'] }})</li>
+                    <li>{{ $field['label'] }} <span class="text-slate-400">({{ $field['type'] }})</span></li>
                     @endforeach
                 </ul>
             </div>
-            <div style="font-size: 0.75rem; color: #666; margin-bottom: 1rem;">
-                Dibuat oleh: <strong>{{ $customTemplate->creator->name }}</strong> • {{ $customTemplate->created_at->diffForHumans() }}
+            <div class="mt-3 text-xs text-slate-500">
+                Dibuat oleh: <strong class="font-semibold text-slate-700">{{ $customTemplate->creator->name }}</strong>
+                <span class="px-1 text-slate-300">|</span> {{ $customTemplate->created_at->diffForHumans() }}
             </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <form method="POST" action="{{ route('events.form.custom-template', ['event' => $event->id, 'customTemplate' => $customTemplate->id]) }}" style="flex: 1;" id="eventCustomTemplateForm{{ $customTemplate->id }}">
+            <div class="mt-5 flex gap-2">
+                <form method="POST" action="{{ route('events.form.custom-template', ['event' => $event->id, 'customTemplate' => $customTemplate->id]) }}" class="flex-1" id="eventCustomTemplateForm{{ $customTemplate->id }}">
                     @csrf
-                    <button type="button" class="btn {{ $isActiveCustom ? 'btn-secondary' : 'btn-success' }}" style="width: 100%;"
+                    <button type="button" class="btn w-full {{ $isActiveCustom ? 'btn-secondary' : 'btn-success' }}"
                         @if($isActiveCustom) disabled @endif
                         @if(!$isActiveCustom) onclick="showConfirmModal('Gunakan Template?', 'Form pendaftaran yang ada akan diganti dengan template ini.', () => document.getElementById('eventCustomTemplateForm{{ $customTemplate->id }}').submit())" @endif>
-                        {{ $isActiveCustom ? '✓ Template Aktif' : 'Gunakan Template' }}
+                        {{ $isActiveCustom ? 'Template Aktif' : 'Gunakan Template' }}
                     </button>
                 </form>
-                <button type="button" class="btn btn-info" style="width: 100px;"
+                <button type="button" class="btn btn-info w-[104px] shrink-0"
                     onclick="editTemplateForm({{ json_encode($customTemplate->form_fields) }}, '{{ addslashes($customTemplate->name) }}', {{ $customTemplate->id }})"
                     title="Edit field template">
-                    ✏️ Edit Field
+                    Edit Field
                 </button>
             </div>
             <!-- Tombol Edit & Hapus di bagian bawah -->
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                <button type="button" class="btn btn-sm btn-warning" style="flex: 1;" onclick="editCustomTemplate({{ $customTemplate->id }}, '{{ addslashes($customTemplate->name) }}', '{{ addslashes($customTemplate->description ?? '') }}', {{ json_encode($customTemplate->form_fields) }})" title="Edit nama, deskripsi, dan field template">
-                    📝 Edit Data Template
+            <div class="mt-4 flex gap-2 border-t border-slate-200 pt-4">
+                <button type="button" class="btn btn-sm btn-warning flex-1" onclick="editCustomTemplate({{ $customTemplate->id }}, '{{ addslashes($customTemplate->name) }}', '{{ addslashes($customTemplate->description ?? '') }}', {{ json_encode($customTemplate->form_fields) }})" title="Edit nama, deskripsi, dan field template">
+                    Edit Data Template
                 </button>
-                <form method="POST" action="{{ route('custom-event-templates.delete', $customTemplate->id) }}" style="flex: 1;" id="deleteEventTemplateForm{{ $customTemplate->id }}">
+                <form method="POST" action="{{ route('custom-event-templates.delete', $customTemplate->id) }}" class="flex-1" id="deleteEventTemplateForm{{ $customTemplate->id }}">
                     @csrf
                     @method('DELETE')
-                    <button type="button" class="btn btn-sm btn-danger" style="width: 100%;" title="Hapus Template" 
+                    <button type="button" class="btn btn-sm btn-danger w-full" title="Hapus Template" 
                         onclick="showConfirmModal('Hapus Template?', 'Template akan dihapus permanen.', () => document.getElementById('deleteEventTemplateForm{{ $customTemplate->id }}').submit())">
-                        🗑️ Hapus Template
+                        Hapus Template
                     </button>
                 </form>
             </div>
@@ -288,7 +308,7 @@
     // Function to preview template fields
     function previewTemplate(fields, templateName) {
         if (!fields || fields.length === 0) {
-            alert('❌ Template ini tidak memiliki field untuk dipratinjau.');
+            alert('Template ini tidak memiliki field untuk dipratinjau.');
             return;
         }
 
@@ -315,23 +335,23 @@
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="font-weight: bold; margin-bottom: 0.5rem; display: block;">
                         ${field.label}
-                        ${field.required ? '<span style="color: red;">*</span>' : ''}
+                        ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
                     </label>
-                    ${field.description ? `<p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
+                    ${field.description ? `<p style="color: #64748b; font-size: 0.85rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
                     ${inputHTML}
                 </div>
             `;
         });
 
         modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="margin: 0;">👁️ Preview: ${templateName}</h3>
-                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Preview: ${templateName}</h3>
+                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; line-height: 1; color: #64748b; cursor: pointer;">&times;</button>
                 </div>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; margin-bottom: 1rem; border-left: 4px solid #0d6efd;">
-                    <p style="margin: 0; font-size: 0.875rem; color: #666;">
-                        <strong>ℹ️ Ini adalah preview template.</strong> Field di bawah ini akan muncul dalam form pendaftaran jika template ini digunakan.
+                <div style="background: #eef2ff; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #4f46e5;">
+                    <p style="margin: 0; font-size: 0.875rem; color: #475569;">
+                        <strong style="color: #3730a3;">Ini adalah preview template.</strong> Field di bawah ini akan muncul dalam form pendaftaran jika template ini digunakan.
                     </p>
                 </div>
                 <form onsubmit="event.preventDefault(); alert('Ini hanya preview, data tidak akan tersimpan.');">
@@ -356,7 +376,7 @@
         const existingForm = @json($existingForm ? $existingForm->form_fields : []);
         
         if (!existingForm || existingForm.length === 0) {
-            alert('❌ Tidak ada form untuk dipratinjau.');
+            alert('Tidak ada form untuk dipratinjau.');
             return;
         }
 
@@ -383,19 +403,19 @@
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label style="font-weight: bold; margin-bottom: 0.5rem; display: block;">
                         ${field.label}
-                        ${field.required ? '<span style="color: red;">*</span>' : ''}
+                        ${field.required ? '<span style="color: #e11d48;">*</span>' : ''}
                     </label>
-                    ${field.description ? `<p style="color: #666; font-size: 0.9rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
+                    ${field.description ? `<p style="color: #64748b; font-size: 0.85rem; margin-top: 0.25rem; margin-bottom: 0.5rem;">${field.description}</p>` : ''}
                     ${inputHTML}
                 </div>
             `;
         });
 
         modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h3 style="margin: 0;">👁️ Preview Form Pendaftaran</h3>
-                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0;">
+                    <h3 style="margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Preview Form Pendaftaran</h3>
+                    <button type="button" onclick="this.closest('div[style*=fixed]').remove()" style="background: none; border: none; font-size: 1.5rem; line-height: 1; color: #64748b; cursor: pointer;">&times;</button>
                 </div>
                 <form onsubmit="event.preventDefault(); alert('Ini hanya preview, data tidak akan tersimpan.');">
                     ${fieldsHTML}
@@ -426,7 +446,7 @@
             // Highlight template cards area
             const cardGrid = templateSection.parentElement.querySelector('div[style*="grid"]');
             if (cardGrid) {
-                cardGrid.style.backgroundColor = '#f0f8ff';
+                cardGrid.style.backgroundColor = '#eef2ff';
                 setTimeout(() => {
                     cardGrid.style.transition = 'background-color 1s';
                     cardGrid.style.backgroundColor = 'transparent';
@@ -441,7 +461,7 @@
         const fields = @json($existingForm ? $existingForm->form_fields : []);
 
         if (fields.length === 0) {
-            alert('❌ Tidak ada field untuk disimpan sebagai template!');
+            alert('Tidak ada field untuk disimpan sebagai template!');
             return;
         }
 
@@ -450,16 +470,16 @@
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
         modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
-            <h3 style="margin-bottom: 1rem;">💾 Simpan Sebagai Template</h3>
+        <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Simpan Sebagai Template</h3>
             <form method="POST" action="{{ route('events.form.save-template', $event->id) }}">
                 @csrf
                 <div class="form-group">
-                    <label>Nama Template *</label>
+                    <label class="form-label">Nama Template *</label>
                     <input type="text" name="template_name" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Deskripsi</label>
+                    <label class="form-label">Deskripsi</label>
                     <textarea name="template_description" class="form-control" rows="3"></textarea>
                 </div>
                 <input type="hidden" name="form_fields" value='${formFields}'>
@@ -478,17 +498,17 @@
         const modal = document.createElement('div');
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;';
         modal.innerHTML = `
-        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
-            <h3 style="margin-bottom: 1rem;">✏️ Edit Template</h3>
+        <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.2); max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600; color: #0f172a;">Edit Template</h3>
             <form method="POST" action="/custom-event-templates/${id}">
                 @csrf
                 @method('PUT')
                 <div class="form-group">
-                    <label>Nama Template *</label>
+                    <label class="form-label">Nama Template *</label>
                     <input type="text" name="name" class="form-control" value="${name}" required>
                 </div>
                 <div class="form-group">
-                    <label>Deskripsi</label>
+                    <label class="form-label">Deskripsi</label>
                     <textarea name="description" class="form-control" rows="3">${description}</textarea>
                 </div>
                 <input type="hidden" name="form_fields" value='${JSON.stringify(fields)}'>
@@ -508,20 +528,22 @@
         modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s;';
         
         modal.innerHTML = `
-            <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.3s;" onclick="event.stopPropagation()">
+            <div style="background: #ffffff; padding: 2rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15,23,42,0.25); max-width: 450px; width: 90%; animation: slideUp 0.3s;" onclick="event.stopPropagation()">
                 <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <div style="width: 70px; height: 70px; background: #2563eb; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
-                        <span style="font-size: 2.5rem; color: white;">❓</span>
+                    <div style="width: 64px; height: 64px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width: 28px; height: 28px; color: #4f46e5;" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+                        </svg>
                     </div>
-                    <h3 style="margin: 0 0 0.5rem 0; color: #333; font-size: 1.5rem; font-weight: bold;">${title}</h3>
-                    <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">${message}</p>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #0f172a; font-size: 1.25rem; font-weight: 600;">${title}</h3>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9375rem; line-height: 1.6;">${message}</p>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
-                    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary" style="flex: 1; padding: 0.75rem; border-radius: 8px; font-size: 1rem;">
-                        ❌ Batal
+                    <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-secondary" style="flex: 1;">
+                        Batal
                     </button>
-                    <button id="confirmBtn" class="btn-premium btn-premium-primary" style="flex: 1; padding: 0.75rem; border-radius: 8px; font-size: 1rem; border: none;">
-                        ✅ Ya, Lanjutkan
+                    <button id="confirmBtn" class="btn-premium btn-premium-primary" style="flex: 1;">
+                        Ya, Lanjutkan
                     </button>
                 </div>
             </div>

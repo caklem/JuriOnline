@@ -1,0 +1,2 @@
+# Development-only scripts: never serve these through a web server.
+Require all denied

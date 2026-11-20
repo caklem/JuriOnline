@@ -5,7 +5,8 @@ import forms from '@tailwindcss/forms';
 export default {
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
+        // Blade sources only: compiled view cache (storage/framework/views) is a
+        // build artifact — scanning it makes the CSS depend on cache state.
         './resources/views/**/*.blade.php',
     ],
 

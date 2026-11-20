@@ -3,110 +3,169 @@
 @section('title', 'Detail Pendaftaran')
 
 @section('content')
-<div class="card">
+<div class="page-header-premium">
     <h1>Detail Pendaftaran</h1>
+    <p>Ringkasan event, pendaftaran, dan pembayaran peserta.</p>
+</div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-        <div>
-            <h3>Informasi Event</h3>
-            <p>
-                <strong>Nama Event:</strong> {{ $registration->event->name }}<br>
-                <strong>Organizer:</strong> {{ $registration->event->organizer->name }}<br>
-                <strong>Tanggal Event:</strong> {{ $registration->event->event_start->format('d M Y') }} - {{ $registration->event->event_end->format('d M Y') }}<br>
-                <strong>Lokasi:</strong> {{ $registration->event->location ?? 'Online' }}
-            </p>
-        </div>
-
-        <div>
-            <h3>Informasi Pendaftaran</h3>
-            <p>
-                <strong>No. Pendaftaran:</strong> {{ $registration->registration_number }}<br>
-                <strong>Nama Peserta:</strong> {{ $registration->user->name }}<br>
-                <strong>Email:</strong> {{ $registration->user->email }}<br>
-                <strong>Tanggal Daftar:</strong> {{ $registration->registered_at->format('d M Y H:i') }}<br>
-                <strong>Status:</strong>
-                @if($registration->status === 'verified')
-                <span class="badge badge-success">Terverifikasi</span>
-                @elseif($registration->status === 'pending')
-                <span class="badge badge-warning">Menunggu</span>
-                @elseif($registration->status === 'rejected')
-                <span class="badge badge-danger">Ditolak</span>
-                @else
-                <span class="badge badge-info">{{ $registration->status }}</span>
-                @endif
-            </p>
-
-            @if($registration->notes)
-            <p>
-                <strong>Catatan:</strong><br>
-                {{ $registration->notes }}
-            </p>
-            @endif
-        </div>
-    </div>
-
-    @if($registration->response)
-    <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #e8f5e9; border-radius: 5px; border-left: 4px solid #27ae60;">
-        <h3>📝 Data Form Pendaftaran</h3>
-        <div style="margin-top: 1rem;">
-            @foreach($registration->response->responses as $label => $answer)
-            <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
-                <strong style="color: #27ae60;">{{ $label }}:</strong><br>
-                <span style="color: #333; white-space: pre-line;">{{ $answer ?? '-' }}</span>
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="premium-card !mb-0">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">Informasi Event</h3>
+        <dl class="space-y-3 text-sm">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Nama Event</dt>
+                <dd class="mt-0.5 font-medium text-slate-900">{{ $registration->event->name }}</dd>
             </div>
-            @endforeach
-        </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Penyelenggara</dt>
+                <dd class="mt-0.5 text-slate-700">{{ $registration->event->organizer->name }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tanggal Event</dt>
+                <dd class="mt-0.5 text-slate-700">{{ $registration->event->event_start->format('d M Y') }} - {{ $registration->event->event_end->format('d M Y') }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Lokasi</dt>
+                <dd class="mt-0.5 text-slate-700">{{ $registration->event->location ?? 'Online' }}</dd>
+            </div>
+        </dl>
     </div>
+
+    <div class="premium-card !mb-0">
+        <h3 class="mb-4 text-base font-semibold text-slate-900">Informasi Pendaftaran</h3>
+        <dl class="space-y-3 text-sm">
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">No. Pendaftaran</dt>
+                <dd class="mt-0.5">
+                    <span class="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-md">{{ $registration->registration_number }}</span>
+                </dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Nama Peserta</dt>
+                <dd class="mt-0.5 font-medium text-slate-900">{{ $registration->user->name }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Email</dt>
+                <dd class="mt-0.5 text-slate-700">{{ $registration->user->email }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tanggal Daftar</dt>
+                <dd class="mt-0.5 text-slate-700">{{ $registration->registered_at->format('d M Y H:i') }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt>
+                <dd class="mt-1">
+                    @if($registration->status === 'verified')
+                    <span class="badge badge-success">Terverifikasi</span>
+                    @elseif($registration->status === 'pending')
+                    <span class="badge badge-warning">Menunggu</span>
+                    @elseif($registration->status === 'rejected')
+                    <span class="badge badge-danger">Ditolak</span>
+                    @else
+                    <span class="badge badge-info">{{ $registration->status }}</span>
+                    @endif
+                </dd>
+            </div>
+            @if($registration->notes)
+            <div>
+                <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Catatan</dt>
+                <dd class="mt-0.5 whitespace-pre-line text-slate-700">{{ $registration->notes }}</dd>
+            </div>
+            @endif
+        </dl>
+    </div>
+</div>
+
+@if($registration->response)
+<div class="premium-card !border-l-4 !border-emerald-500">
+    <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-slate-900">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5 text-emerald-600" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5h6m-7 4h8m-8 4h5m-5 4h8M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+        </svg>
+        Data Form Pendaftaran
+    </h3>
+    <div class="space-y-4">
+        @foreach($registration->response->responses as $label => $answer)
+        <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+            <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $label }}</p>
+            <p class="mt-1 whitespace-pre-line text-sm text-slate-700">{{ $answer ?? '-' }}</p>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+<div class="premium-card">
+    <h3 class="mb-4 text-base font-semibold text-slate-900">Status Pembayaran</h3>
+
+    @if($registration->payment)
+    <dl class="space-y-3 text-sm">
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Jumlah</dt>
+            <dd class="mt-0.5 font-semibold text-slate-900">Rp {{ number_format($registration->payment->amount, 0, ',', '.') }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</dt>
+            <dd class="mt-1">
+                @if($registration->payment->status === 'verified')
+                <span class="badge badge-success">Terverifikasi</span>
+                @elseif($registration->payment->status === 'pending')
+                <span class="badge badge-warning">Menunggu Verifikasi</span>
+                @else
+                <span class="badge badge-danger">Ditolak</span>
+                @endif
+            </dd>
+        </div>
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tanggal Upload</dt>
+            <dd class="mt-0.5 text-slate-700">{{ $registration->payment->created_at->format('d M Y H:i') }}</dd>
+        </div>
+    </dl>
+
+    <div class="mt-4">
+        <a href="{{ route('payments.proof', $registration->payment) }}" target="_blank" class="btn btn-primary">
+            Lihat Bukti Transfer
+        </a>
+    </div>
+
+    @if($registration->payment->verified_at)
+    <dl class="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Diverifikasi oleh</dt>
+            <dd class="mt-0.5 text-slate-700">{{ $registration->payment->verifier->name }}</dd>
+        </div>
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Tanggal Verifikasi</dt>
+            <dd class="mt-0.5 text-slate-700">{{ $registration->payment->verified_at->format('d M Y H:i') }}</dd>
+        </div>
+        @if($registration->payment->verification_notes)
+        <div>
+            <dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Catatan</dt>
+            <dd class="mt-0.5 text-slate-700">{{ $registration->payment->verification_notes }}</dd>
+        </div>
+        @endif
+    </dl>
     @endif
-
-    <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 5px;">
-        <h3>Status Pembayaran</h3>
-
-        @if($registration->payment)
-        <p>
-            <strong>Jumlah:</strong> Rp {{ number_format($registration->payment->amount, 0, ',', '.') }}<br>
-            <strong>Status:</strong>
-            @if($registration->payment->status === 'verified')
-            <span class="badge badge-success">Terverifikasi</span>
-            @elseif($registration->payment->status === 'pending')
-            <span class="badge badge-warning">Menunggu Verifikasi</span>
-            @else
-            <span class="badge badge-danger">Ditolak</span>
-            @endif
-            <br>
-            <strong>Tanggal Upload:</strong> {{ $registration->payment->created_at->format('d M Y H:i') }}
-        </p>
-
-        <div style="margin-top: 1rem;">
-            <a href="{{ Storage::url($registration->payment->proof_file) }}" target="_blank" class="btn btn-primary">Lihat Bukti Transfer</a>
-        </div>
-
-        @if($registration->payment->verified_at)
-        <p style="margin-top: 1rem;">
-            <strong>Diverifikasi oleh:</strong> {{ $registration->payment->verifier->name }}<br>
-            <strong>Tanggal Verifikasi:</strong> {{ $registration->payment->verified_at->format('d M Y H:i') }}
-            @if($registration->payment->verification_notes)
-            <br><strong>Catatan:</strong> {{ $registration->payment->verification_notes }}
-            @endif
-        </p>
-        @endif
-        @else
-        <div class="alert alert-warning">
-            <strong>Bukti pembayaran belum diupload!</strong>
-            <p>Silakan upload bukti transfer Anda untuk memverifikasi pendaftaran.</p>
-        </div>
-
-        @if(auth()->user()->isParticipant() && $registration->user_id === auth()->id())
-        <a href="{{ route('payments.create', $registration) }}" class="btn btn-success">Upload Bukti Pembayaran</a>
-        @endif
-        @endif
+    @else
+    <div class="alert alert-warning">
+        <strong>Bukti pembayaran belum diupload!</strong>
+        <p class="mt-1">Silakan upload bukti transfer Anda untuk memverifikasi pendaftaran.</p>
     </div>
 
-    @if($registration->juryScores->isNotEmpty())
-    <div style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 5px;">
-        <h3>Penilaian Juri</h3>
+    @if(auth()->user()->isParticipant() && $registration->user_id === auth()->id())
+    <a href="{{ route('payments.create', $registration) }}" class="btn btn-success">
+        Upload Bukti Pembayaran
+    </a>
+    @endif
+    @endif
+</div>
 
-        <table>
+@if($registration->juryScores->isNotEmpty())
+<div class="premium-card">
+    <h3 class="mb-4 text-base font-semibold text-slate-900">Penilaian Juri</h3>
+
+    <div class="overflow-x-auto">
+        <table class="table-premium">
             <thead>
                 <tr>
                     <th>Juri</th>
@@ -118,7 +177,7 @@
             <tbody>
                 @foreach($registration->juryScores as $score)
                 <tr>
-                    <td>{{ $score->jury->name }}</td>
+                    <td class="font-medium text-slate-900">{{ $score->jury->name }}</td>
                     <td><strong>{{ number_format($score->score, 2) }}</strong></td>
                     <td>{{ $score->public_feedback ?? '-' }}</td>
                     <td>{{ $score->created_at->format('d M Y') }}</td>
@@ -126,20 +185,50 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
 
-        <div style="margin-top: 1rem; padding: 1rem; background-color: #d4edda; border-radius: 5px;">
-            <strong>Nilai Rata-rata:</strong>
-            <span style="font-size: 1.5rem; color: #155724;">{{ number_format($registration->getAverageScore(), 2) }}</span>
+    <div class="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 ring-1 ring-emerald-100">
+        <span class="text-sm font-medium text-emerald-700">Nilai Rata-rata:</span>
+        <span class="text-2xl font-semibold text-emerald-700">{{ number_format($registration->getAverageScore(), 2) }}</span>
+    </div>
+</div>
+@endif
+
+@if(auth()->user()->canManageEvent($registration->event))
+<div class="premium-card">
+    <div class="premium-card-header">
+        <h2 class="premium-card-title">Kelola Status Pendaftaran</h2>
+    </div>
+
+    <form method="POST" action="{{ route('registrations.update-status', $registration) }}" class="space-y-4">
+        @csrf
+        @method('PATCH')
+
+        <div class="form-group">
+            <label for="status" class="form-label">Status Pendaftaran</label>
+            <select id="status" name="status" class="form-control">
+                <option value="pending" @selected($registration->status === 'pending')>Menunggu</option>
+                <option value="verified" @selected($registration->status === 'verified')>Terverifikasi</option>
+                <option value="rejected" @selected($registration->status === 'rejected')>Ditolak</option>
+                <option value="cancelled" @selected($registration->status === 'cancelled')>Dibatalkan</option>
+            </select>
         </div>
-    </div>
-    @endif
 
-    <div style="display: flex; gap: 0.5rem;">
-        @if(auth()->user()->isParticipant())
-        <a href="{{ route('registrations.my') }}" class="btn" style="background: #ddd;">Kembali ke Pendaftaran Saya</a>
-        @else
-        <a href="{{ route('events.participants', $registration->event) }}" class="btn" style="background: #ddd;">Kembali ke Daftar Peserta</a>
-        @endif
-    </div>
+        <div class="form-group">
+            <label for="notes" class="form-label">Catatan</label>
+            <textarea id="notes" name="notes" rows="3" class="form-control" placeholder="Catatan untuk peserta (opsional)">{{ $registration->notes }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Simpan Status</button>
+    </form>
+</div>
+@endif
+
+<div class="flex flex-wrap gap-2">
+    @if(auth()->user()->isParticipant())
+    <a href="{{ route('registrations.my') }}" class="btn btn-outline-secondary">Kembali ke Pendaftaran Saya</a>
+    @else
+    <a href="{{ route('events.participants', $registration->event) }}" class="btn btn-outline-secondary">Kembali ke Daftar Peserta</a>
+    @endif
 </div>
 @endsection

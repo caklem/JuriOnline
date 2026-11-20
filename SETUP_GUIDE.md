@@ -22,7 +22,7 @@ php artisan migrate --seed
 Ini akan membuat:
 
 -   Tabel users, roles, events, registrations, payments, jury_scores, categories
--   5 demo users dengan role berbeda
+-   5 demo users (4 role; admin memiliki scope all/own)
 -   4 kategori event
 
 ### 3. Setup Storage
@@ -41,13 +41,13 @@ Akses: http://localhost:8000
 
 ## Demo Accounts
 
-| Role        | Email                 | Password | Access                     |
-| ----------- | --------------------- | -------- | -------------------------- |
-| Admin Owner | owner@example.com     | password | Full monitoring            |
-| Admin       | admin@example.com     | password | Manage all events          |
-| Organizer   | organizer@example.com | password | Create & manage own events |
-| Peserta     | peserta@example.com   | password | Register to events         |
-| Juri        | juri@example.com      | password | Score participants         |
+| Role         | Email                 | Password | Access                                      |
+| ------------ | --------------------- | -------- | ------------------------------------------- |
+| Admin Owner  | owner@example.com     | password | Full monitoring                             |
+| Admin Global | admin@example.com     | password | Manage all events; not Owner Area           |
+| Admin Event  | organizer@example.com | password | Manage own events, forms, payments, recap   |
+| Peserta      | peserta@example.com   | password | Register to events                          |
+| Juri         | juri@example.com      | password | Score assigned events                       |
 
 ## Struktur File Penting
 
@@ -89,7 +89,7 @@ resources/views/
 ├── dashboard/
 │   ├── admin-owner.blade.php
 │   ├── admin.blade.php
-│   ├── organizer.blade.php
+│   ├── admin-event.blade.php
 │   ├── participant.blade.php
 │   └── jury.blade.php
 ├── events/
@@ -106,14 +106,21 @@ routes/
 
 ## Testing Workflow
 
-### Sebagai Organizer:
+### Sebagai Admin Event:
 
-1. Login sebagai organizer@example.com
+1. Login sebagai organizer@example.com (role admin, scope own)
 2. Klik "Buat Event Baru"
 3. Isi form event (nama, deskripsi, harga, kuota, tanggal)
 4. Upload banner (optional)
 5. Submit - event dibuat dengan status "draft"
 6. Edit event dan ubah status ke "active"
+
+### Membuat / Mengundang Akun Juri:
+
+1. Login sebagai Admin Event atau Admin Global, lalu buka event → **Assign Form ke Juri**.
+2. **Opsi 1 (panitia menyiapkan):** isi nama, email, pilih form penilaian, lalu klik **Buat Akun + Assign**. Salin email dan **kode akses 8 karakter** yang tampil satu kali, lalu berikan kepada juri.
+3. **Opsi 2 (juri mendaftar sendiri):** minta juri membuka `/register/jury`, membuat akun, lalu pilih akun tersebut pada daftar assignment event.
+4. Juri login di `/login`. Opsi 1 memakai email + kode akses sebagai password; opsi 2 memakai password buatannya sendiri. Setelah login, juri dapat mengganti password melalui menu **Profil**.
 
 ### Sebagai Peserta:
 
@@ -125,9 +132,9 @@ routes/
 6. Upload bukti pembayaran
 7. Tunggu verifikasi
 
-### Sebagai Admin/Organizer (Verifikasi):
+### Sebagai Admin Global/Admin Event (Verifikasi):
 
-1. Login sebagai admin atau organizer event
+1. Login sebagai Admin Global atau Admin Event
 2. Klik "Verifikasi Pembayaran"
 3. Lihat daftar pembayaran pending
 4. Klik "Lihat Bukti" untuk melihat file
@@ -144,14 +151,14 @@ routes/
 5. Klik "Beri Nilai"
 6. Isi nilai (0-100)
 7. Isi public feedback (terlihat peserta)
-8. Isi private evaluation (hanya admin/organizer)
+8. Isi private evaluation (hanya admin pengelola event)
 9. Submit
 
 ### Sebagai Admin Owner:
 
 1. Login sebagai owner@example.com
 2. Dashboard menampilkan semua statistik
-3. Lihat semua event dari semua organizer
+3. Lihat semua event dari semua admin event
 4. Lihat semua transaksi pembayaran
 5. Monitor seluruh sistem
 

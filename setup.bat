@@ -58,7 +58,7 @@ echo.
 echo Demo accounts:
 echo - Admin Owner: owner@example.com / password
 echo - Admin: admin@example.com / password
-echo - Organizer: organizer@example.com / password
+echo - Admin Event: organizer@example.com / password
 echo - Peserta: peserta@example.com / password
 echo - Juri: juri@example.com / password
 echo.

@@ -4,8 +4,8 @@
 
 ### 1. Database Schema (Migrations)
 
--   ✅ `roles` - Tabel role (admin_owner, admin, organizer, participant, jury)
--   ✅ `users` - Update dengan role_id
+-   ✅ `roles` - Tabel role (admin_owner, admin, participant, jury); Admin memiliki `event_scope` all/own
+-   ✅ `users` - Update dengan role_id, is_active, event_scope
 -   ✅ `categories` - Kategori event
 -   ✅ `events` - Data event dengan kuota, harga, periode
 -   ✅ `registrations` - Pendaftaran peserta
@@ -15,7 +15,7 @@
 ### 2. Models dengan Relationships
 
 -   ✅ `Role` - Model role dengan constants
--   ✅ `User` - Dengan helper methods (isAdmin, isOrganizer, dll)
+-   ✅ `User` - Dengan helper methods (isAdmin, canManageEvents, dll)
 -   ✅ `Category` - Kategori event
 -   ✅ `Event` - Dengan helper methods (isRegistrationOpen, getAvailableSlots)
 -   ✅ `Registration` - Dengan generate registration number
@@ -40,8 +40,8 @@
 
 -   ✅ Public routes (browse events)
 -   ✅ Participant routes (register, upload payment)
--   ✅ Organizer routes (create/manage events)
--   ✅ Admin routes (all events, all payments)
+-   ✅ Admin event routes (create/manage own events, forms, juries)
+-   ✅ Admin Global routes (all events, all payments)
 -   ✅ Jury routes (scoring, leaderboard)
 -   ✅ Protected dengan role middleware
 
@@ -51,14 +51,13 @@
 -   ✅ Dashboard untuk setiap role:
     -   admin-owner.blade.php
     -   admin.blade.php
-    -   organizer.blade.php
     -   participant.blade.php
     -   jury.blade.php
 -   ✅ Event views:
     -   public.blade.php (browse)
     -   detail.blade.php (detail + register)
     -   index.blade.php (manage events)
-    -   show.blade.php (event detail for organizer)
+    -   show.blade.php (event detail for admin event)
     -   create.blade.php (form create event)
 -   ✅ Registration views:
     -   show.blade.php (detail pendaftaran)
@@ -68,7 +67,7 @@
 
 ### 7. Seeders
 
--   ✅ `RoleSeeder` - 5 roles
+-   ✅ `RoleSeeder` - 4 roles
 -   ✅ `DatabaseSeeder` - Demo users + categories
 
 ### 8. Documentation
@@ -82,26 +81,29 @@
 
 ### Role: Admin Owner
 
--   ✅ Monitoring semua event dari semua organizer
+-   ✅ Monitoring semua event dari semua admin event
 -   ✅ Lihat semua transaksi pembayaran
 -   ✅ Statistik lengkap sistem
 -   ✅ Akses penuh tanpa batasan
 
-### Role: Admin
+### Role: Admin Global (`admin`, `event_scope=all`)
 
 -   ✅ Kelola semua event
--   ✅ Verifikasi pembayaran
+-   ✅ Verifikasi pembayaran semua event
 -   ✅ Lihat semua pendaftaran
--   ✅ Akses ke semua event
+-   ✅ Akses ke semua event, nilai juri, dan rekap
+-   ✅ Tidak bisa masuk Owner Area
 
-### Role: Organizer
+### Role: Admin Event (`admin`, `event_scope=own`)
 
 -   ✅ Buat event baru
 -   ✅ Set kuota, harga, periode
 -   ✅ Upload banner event
--   ✅ Kelola pendaftaran event sendiri
--   ✅ Verifikasi pembayaran untuk event sendiri
--   ✅ Lihat statistik event
+-   ✅ Kelola event sendiri
+-   ✅ Verifikasi pembayaran event sendiri
+-   ✅ Kelola form pendaftaran dan form penilaian juri event sendiri
+-   ✅ Assign juri dan lihat statistik event sendiri
+-   ❌ Tidak bisa mengakses event admin lain (403)
 
 ### Role: Peserta (Participant)
 
@@ -117,14 +119,14 @@
 -   ✅ Lihat daftar event aktif
 -   ✅ Beri nilai ke peserta terverifikasi
 -   ✅ Public feedback (terlihat peserta)
--   ✅ Private evaluation (hanya admin/organizer)
+-   ✅ Private evaluation (hanya admin)
 -   ✅ Edit penilaian yang sudah dibuat
 -   ✅ Leaderboard otomatis
 
 ## 🔐 Keamanan & Authorization
 
 -   ✅ Role-based middleware
--   ✅ Check ownership (organizer hanya bisa manage event sendiri)
+-   ✅ Check permission (admin dapat mengelola seluruh event)
 -   ✅ CSRF protection
 -   ✅ Input validation
 -   ✅ File upload validation (type, size)
@@ -198,13 +200,13 @@ php artisan serve
 
 ## 📝 Demo Accounts (Setelah Seeding)
 
-| Role        | Email                 | Password |
-| ----------- | --------------------- | -------- |
-| Admin Owner | owner@example.com     | password |
-| Admin       | admin@example.com     | password |
-| Organizer   | organizer@example.com | password |
-| Peserta     | peserta@example.com   | password |
-| Juri        | juri@example.com      | password |
+| Role         | Email                 | Password |
+| ------------ | --------------------- | -------- |
+| Admin Owner  | owner@example.com     | password |
+| Admin Global | admin@example.com     | password |
+| Admin Event  | organizer@example.com | password |
+| Peserta      | peserta@example.com   | password |
+| Juri         | juri@example.com      | password |
 
 ## 🎨 Customization Ideas
 
@@ -266,7 +268,7 @@ php artisan cache:clear
 ✅ Multi-role system dengan authorization lengkap
 ✅ Event management dengan masa aktif terbatas
 ✅ Pembayaran manual dengan upload bukti transfer
-✅ Verifikasi pembayaran oleh Admin/Organizer
+✅ Verifikasi pembayaran oleh Admin Global/Admin Event
 ✅ Sistem penjurian dengan public & private feedback
 ✅ Automatic leaderboard calculation
 ✅ Real-time kuota tracking
@@ -279,7 +281,7 @@ php artisan cache:clear
 
 ## 🎓 Testing Workflow
 
-### Test sebagai Organizer:
+### Test sebagai Admin Event:
 
 1. Login: organizer@example.com / password
 2. Create event baru

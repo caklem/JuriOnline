@@ -23,7 +23,6 @@ class Role extends Model
     // Role constants
     const ADMIN_OWNER = 'admin_owner';
     const ADMIN = 'admin';
-    const ORGANIZER = 'organizer';
     const PARTICIPANT = 'participant';
     const JURY = 'jury';
 }

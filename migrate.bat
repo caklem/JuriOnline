@@ -39,7 +39,7 @@ if errorlevel 1 (
     echo Demo accounts created:
     echo - owner@example.com / password (Admin Owner)
     echo - admin@example.com / password (Admin)
-    echo - organizer@example.com / password (Organizer)
+    echo - organizer@example.com / password (Admin Event)
     echo - peserta@example.com / password (Peserta)
     echo - juri@example.com / password (Juri)
     echo.

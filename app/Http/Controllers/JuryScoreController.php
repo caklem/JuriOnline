@@ -13,63 +13,144 @@ class JuryScoreController extends Controller
     {
         $user = auth()->user();
 
-        // Get events where this jury is assigned, or all active events if no assignment (backward compatibility)
-        $assignedEventIds = $user->juryFormAssignments()
+        if ($user->canManageEvents()) {
+            $query = Event::where('status', 'active')
+                ->with(['organizer', 'category', 'registrations']);
+
+            if (!$user->canManageAllEvents()) {
+                $query->where('organizer_id', $user->id);
+            }
+
+            $events = $query->latest()->paginate(10);
+
+            return view('jury.events', [
+                'events' => $events,
+                'assignedEventIds' => [],
+                'pendingByEvent' => collect(),
+            ]);
+        }
+
+        $assignedEventIds = $user->acceptedJuryAssignments()
             ->pluck('event_id')
             ->unique()
             ->toArray();
 
-        if (!empty($assignedEventIds)) {
-            // Only show events where jury is assigned
-            $events = Event::where('status', 'active')
-                ->whereIn('id', $assignedEventIds)
-                ->with(['organizer', 'category', 'registrations'])
-                ->latest()
-                ->paginate(10);
+        $events = Event::where('status', 'active')
+            ->whereIn('id', $assignedEventIds)
+            ->with(['organizer', 'category', 'registrations'])
+            ->latest()
+            ->paginate(10);
+
+        // Hanya event yang penilaiannya sudah terbuka yang punya tugas menilai.
+        $openEventIds = $events->getCollection()
+            ->filter(fn ($event) => $event->isScoringOpen())
+            ->pluck('id');
+
+        // Jumlah peserta terverifikasi yang belum dinilai juri ini, per event.
+        $pendingByEvent = Registration::query()
+            ->whereIn('event_id', $openEventIds)
+            ->where('status', 'verified')
+            ->whereDoesntHave('juryScores', fn ($query) => $query->where('jury_id', $user->id))
+            ->selectRaw('event_id, count(*) as total')
+            ->groupBy('event_id')
+            ->pluck('total', 'event_id');
+
+        return view('jury.events', compact('events', 'assignedEventIds', 'pendingByEvent'));
+    }
+
+    /**
+     * Tampilkan isi form penilaian yang di-assign ke juri (read-only),
+     * supaya juri tahu kriteria apa yang akan diisi sebelum menilai.
+     */
+    public function form(Event $event)
+    {
+        $user = auth()->user();
+
+        if ($user->canManageEvents()) {
+            if (!$user->canManageEvent($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $formTemplate = $event->juryFormTemplates()->orderBy('name')->first();
         } else {
-            // Backward compatibility: show all active events if no assignment
-            $events = Event::where('status', 'active')
-                ->with(['organizer', 'category', 'registrations'])
-                ->latest()
-                ->paginate(10);
+            if (!$user->hasAcceptedAssignmentFor($event)) {
+                abort(403, 'Anda belum menerima undangan juri untuk event ini.');
+            }
+
+            $formTemplate = $user->getAssignedFormTemplate($event);
         }
 
-        return view('jury.events', compact('events', 'assignedEventIds'));
+        if (!$formTemplate) {
+            abort(404, 'Form penilaian belum diatur untuk event ini.');
+        }
+
+        return view('jury.form', compact('event', 'formTemplate'));
     }
 
     public function participants(Event $event)
     {
         $user = auth()->user();
 
-        // Check if jury is assigned to this event
-        $assignedFormTemplate = $user->getAssignedFormTemplate($event);
-        
-        // If assignment exists, verify jury can access this event
-        if ($user->juryFormAssignments()->where('event_id', $event->id)->exists()) {
-            // Jury is assigned, allow access
-        } else {
-            // Check if there are any assignments at all
-            if ($user->juryFormAssignments()->exists()) {
-                // Jury has assignments but not for this event - deny access
-                abort(403, 'Anda tidak di-assign untuk event ini.');
+        if ($user->canManageEvents()) {
+            if (!$user->canManageEvent($event)) {
+                abort(403, 'Unauthorized action.');
             }
-            // No assignments at all - allow access (backward compatibility)
+
+            $assignedFormTemplate = null;
+        } else {
+            if (!$user->hasAcceptedAssignmentFor($event)) {
+                abort(403, 'Anda belum menerima undangan juri untuk event ini.');
+            }
+
+            $assignedFormTemplate = $user->getAssignedFormTemplate($event);
         }
 
         $registrations = $event->registrations()
             ->where('status', 'verified')
-            ->with(['user', 'juryScores' => function ($query) use ($user) {
-                $query->where('jury_id', $user->id);
-            }])
+            ->with(['user', 'juryScores.jury'])
             ->paginate(20);
 
-        return view('jury.participants', compact('event', 'registrations', 'assignedFormTemplate'));
+        $verifiedTotal = $registrations->total();
+        $scoringOpen = $event->isScoringOpen();
+
+        $myScoredTotal = JuryScore::query()
+            ->where('jury_id', $user->id)
+            ->whereHas('registration', function ($query) use ($event) {
+                $query->where('event_id', $event->id)->where('status', 'verified');
+            })
+            ->count();
+
+        return view('jury.participants', compact(
+            'event',
+            'registrations',
+            'assignedFormTemplate',
+            'verifiedTotal',
+            'myScoredTotal',
+            'scoringOpen'
+        ));
     }
 
     public function create(Registration $registration)
     {
         $user = auth()->user();
         $event = $registration->event;
+
+        if ($user->canManageEvents()) {
+            if (!$user->canManageEvent($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+        } elseif (!$user->hasAcceptedAssignmentFor($event)) {
+            abort(403, 'Anda belum menerima undangan juri untuk event ini.');
+        }
+
+        if (!$event->isScoringOpen()) {
+            return redirect()->route('jury.participants', $event)
+                ->with('error', 'Penilaian peserta belum dibuka. Penilaian otomatis dibuka pada hari H atau saat panitia mengaktifkannya.');
+        }
+
+        if ($registration->status !== 'verified') {
+            abort(403, 'Peserta belum terverifikasi.');
+        }
 
         // Check if already scored by this jury
         $existingScore = JuryScore::where('registration_id', $registration->id)
@@ -84,7 +165,7 @@ class JuryScoreController extends Controller
         $assignedFormTemplate = $user->getAssignedFormTemplate($event);
         
         // If assignment exists, enforce it
-        if ($user->juryFormAssignments()->where('event_id', $event->id)->exists()) {
+        if ($user->hasAcceptedAssignmentFor($event)) {
             if (!$assignedFormTemplate) {
                 abort(403, 'Form penilaian belum di-assign untuk Anda. Silakan hubungi admin.');
             }
@@ -101,6 +182,23 @@ class JuryScoreController extends Controller
     public function store(Request $request, Registration $registration)
     {
         $user = auth()->user();
+        $event = $registration->event;
+
+        if ($user->canManageEvents()) {
+            if (!$user->canManageEvent($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+        } elseif (!$user->hasAcceptedAssignmentFor($event)) {
+            abort(403, 'Anda belum menerima undangan juri untuk event ini.');
+        }
+
+        if (!$event->isScoringOpen()) {
+            return back()->with('error', 'Penilaian peserta belum dibuka. Penilaian otomatis dibuka pada hari H atau saat panitia mengaktifkannya.');
+        }
+
+        if ($registration->status !== 'verified') {
+            abort(403, 'Peserta belum terverifikasi.');
+        }
 
         // Check if already scored
         $existingScore = JuryScore::where('registration_id', $registration->id)
@@ -115,11 +213,17 @@ class JuryScoreController extends Controller
             'score' => 'required|numeric|min:0|max:100',
             'public_feedback' => 'nullable|string',
             'private_evaluation' => 'nullable|string',
+        ], [
+            'score.required' => 'Nilai wajib diisi.',
+            'score.numeric' => 'Nilai harus berupa angka.',
+            'score.min' => 'Nilai minimal :min.',
+            'score.max' => 'Nilai maksimal :max.',
+        ], [
+            'score' => 'Nilai',
         ]);
 
         // Handle criteria responses if jury form exists
         $criteriaResponses = [];
-        $event = $registration->event;
         $juryFormTemplate = null;
 
         // Get assigned form template for this jury
@@ -129,6 +233,11 @@ class JuryScoreController extends Controller
         $formTemplateId = $request->input('jury_form_template_id');
         if ($formTemplateId) {
             $juryFormTemplate = $event->juryFormTemplates()->find($formTemplateId);
+
+            if (!$juryFormTemplate) {
+                return back()->with('error', 'Form penilaian tidak valid untuk event ini.');
+            }
+
             // Verify that this is the assigned form (security check)
             if ($assignedFormTemplate && $juryFormTemplate && $juryFormTemplate->id !== $assignedFormTemplate->id) {
                 return back()->with('error', 'Anda tidak diizinkan menggunakan form ini.');
@@ -139,12 +248,16 @@ class JuryScoreController extends Controller
         }
 
         if ($juryFormTemplate) {
+            [$criteriaRules, $criteriaMessages, $criteriaAttributes] = $this->criteriaRules($juryFormTemplate);
+
+            $request->validate($criteriaRules, $criteriaMessages, $criteriaAttributes);
+
             $totalScore = 0;
             foreach ($juryFormTemplate->criteria_fields as $index => $field) {
                 $fieldName = "criteria_{$index}";
 
                 if ($field['type'] === 'score') {
-                    $criteriaScore = $request->input($fieldName, 0);
+                    $criteriaScore = (float) $request->input($fieldName, 0);
                     $criteriaResponses[$field['label']] = [
                         'score' => $criteriaScore,
                         'max' => $field['max']
@@ -157,6 +270,10 @@ class JuryScoreController extends Controller
 
             // If using criteria scoring, calculate final score
             if ($juryFormTemplate->use_default_score && $totalScore > 0) {
+                if ($totalScore > 100) {
+                    return back()->withErrors(['score' => 'Total nilai melebihi 100.'])->withInput();
+                }
+
                 $validated['score'] = $totalScore;
             }
         }
@@ -166,20 +283,46 @@ class JuryScoreController extends Controller
             'jury_id' => $user->id,
             'jury_form_template_id' => $juryFormTemplate ? $juryFormTemplate->id : null,
             'score' => $validated['score'],
-            'public_feedback' => $validated['public_feedback'],
-            'private_evaluation' => $validated['private_evaluation'],
+            'public_feedback' => $validated['public_feedback'] ?? null,
+            'private_evaluation' => $validated['private_evaluation'] ?? null,
             'criteria_responses' => !empty($criteriaResponses) ? $criteriaResponses : null,
         ]);
 
+        // Alur untuk juri: setelah menyimpan, langsung antar ke peserta berikutnya
+        // yang belum dinilai supaya tidak perlu mencari-cari lagi.
+        $nextRegistration = Registration::query()
+            ->where('event_id', $event->id)
+            ->where('status', 'verified')
+            ->whereKeyNot($registration->getKey())
+            ->whereDoesntHave('juryScores', fn ($query) => $query->where('jury_id', $user->id))
+            ->oldest('id')
+            ->first();
+
+        if ($nextRegistration) {
+            return redirect()
+                ->route('jury.score', $nextRegistration)
+                ->with('success', "Nilai untuk {$registration->user->name} tersimpan. Lanjut menilai {$nextRegistration->user->name}.");
+        }
+
         return redirect()->route('jury.participants', $registration->event)
-            ->with('success', 'Penilaian berhasil disimpan!');
+            ->with('success', "Nilai untuk {$registration->user->name} tersimpan. Semua peserta di event ini sudah Anda nilai.");
     }
 
     public function edit(JuryScore $juryScore)
     {
-        // Check if jury owns this score
-        if ($juryScore->jury_id !== auth()->id()) {
+        $user = auth()->user();
+        $event = $juryScore->registration->event;
+
+        if ($juryScore->jury_id === $user->id) {
+            if (!$user->hasAcceptedAssignmentFor($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+        } elseif (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (!$event->isScoringOpen()) {
+            abort(403, 'Penilaian event ini sedang ditutup.');
         }
 
         $registration = $juryScore->registration;
@@ -189,15 +332,32 @@ class JuryScoreController extends Controller
 
     public function update(Request $request, JuryScore $juryScore)
     {
-        // Check if jury owns this score
-        if ($juryScore->jury_id !== auth()->id()) {
+        $user = auth()->user();
+        $event = $juryScore->registration->event;
+
+        if ($juryScore->jury_id === $user->id) {
+            if (!$user->hasAcceptedAssignmentFor($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+        } elseif (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (!$event->isScoringOpen()) {
+            abort(403, 'Penilaian event ini sedang ditutup.');
         }
 
         $validated = $request->validate([
             'score' => 'required|numeric|min:0|max:100',
             'public_feedback' => 'nullable|string',
             'private_evaluation' => 'nullable|string',
+        ], [
+            'score.required' => 'Nilai wajib diisi.',
+            'score.numeric' => 'Nilai harus berupa angka.',
+            'score.min' => 'Nilai minimal :min.',
+            'score.max' => 'Nilai maksimal :max.',
+        ], [
+            'score' => 'Nilai',
         ]);
 
         // Handle criteria responses if jury form exists
@@ -210,18 +370,26 @@ class JuryScoreController extends Controller
             $formTemplateId = $request->input('jury_form_template_id');
             if ($formTemplateId) {
                 $juryFormTemplate = $event->juryFormTemplates()->find($formTemplateId);
+
+                if (!$juryFormTemplate) {
+                    return back()->with('error', 'Form penilaian tidak valid untuk event ini.');
+                }
             } else {
                 $juryFormTemplate = $event->juryFormTemplate ?? $event->juryFormTemplates()->first();
             }
         }
 
         if ($juryFormTemplate) {
+            [$criteriaRules, $criteriaMessages, $criteriaAttributes] = $this->criteriaRules($juryFormTemplate);
+
+            $request->validate($criteriaRules, $criteriaMessages, $criteriaAttributes);
+
             $totalScore = 0;
             foreach ($juryFormTemplate->criteria_fields as $index => $field) {
                 $fieldName = "criteria_{$index}";
 
                 if ($field['type'] === 'score') {
-                    $criteriaScore = $request->input($fieldName, 0);
+                    $criteriaScore = (float) $request->input($fieldName, 0);
                     $criteriaResponses[$field['label']] = [
                         'score' => $criteriaScore,
                         'max' => $field['max']
@@ -234,6 +402,10 @@ class JuryScoreController extends Controller
 
             // If using criteria scoring, calculate final score
             if ($juryFormTemplate->use_default_score && $totalScore > 0) {
+                if ($totalScore > 100) {
+                    return back()->withErrors(['score' => 'Total nilai melebihi 100.'])->withInput();
+                }
+
                 $validated['score'] = $totalScore;
             }
         }
@@ -251,6 +423,16 @@ class JuryScoreController extends Controller
 
     public function leaderboard(Event $event)
     {
+        $user = auth()->user();
+
+        if ($user->canManageEvents()) {
+            if (!$user->canManageEvent($event)) {
+                abort(403, 'Unauthorized action.');
+            }
+        } elseif (!$user->hasAcceptedAssignmentFor($event)) {
+            abort(403, 'Anda belum menerima undangan juri untuk event ini.');
+        }
+
         $registrations = $event->registrations()
             ->where('status', 'verified')
             ->with(['user', 'juryScores'])
@@ -267,7 +449,10 @@ class JuryScoreController extends Controller
 
     public function allScores()
     {
-        // Admin can view all scores from all events
+        if (!auth()->user()->canManageAllEvents()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $scores = JuryScore::with(['registration.event', 'registration.user', 'jury'])
             ->latest()
             ->paginate(20);
@@ -286,7 +471,7 @@ class JuryScoreController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id && !$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -313,6 +498,10 @@ class JuryScoreController extends Controller
 
             // Group scores by form template
             $scoresByForm = $scores->groupBy('jury_form_template_id');
+
+            // Preserve legacy scores that were saved before form templates existed
+            $legacyScores = $scores->filter(fn ($score) => empty($score->jury_form_template_id));
+            $legacyScore = $legacyScores->isNotEmpty() ? (float) ($legacyScores->avg('score') ?? 0) : 0;
             
             // Calculate final score per form (nilai akhir per form)
             $formFinalScores = [];
@@ -363,6 +552,10 @@ class JuryScoreController extends Controller
                     'score' => round($formFinalScore, 2),
                 ];
             }
+
+            if ($legacyScores->isNotEmpty()) {
+                $formFinalScores[] = $legacyScore;
+            }
             
             // Calculate average: sum of all form final scores / number of forms
             $averageScore = !empty($formFinalScores) && $totalFormTemplates > 0 
@@ -377,6 +570,7 @@ class JuryScoreController extends Controller
                 'form_details' => $formDetails, // Detail per form
                 'total_score' => round(array_sum($formFinalScores), 2), // Total dari semua form
                 'average_score' => round($averageScore, 8), // Rata-rata dari semua form
+                'legacy_score' => round($legacyScore, 2), // Skor lama tanpa form template
                 'jury_count' => $scores->count(), // Jumlah juri yang sudah memberikan nilai
                 'form_count' => count($formFinalScores), // Jumlah form yang sudah diisi
             ];
@@ -402,6 +596,7 @@ class JuryScoreController extends Controller
         
         // Convert back to collection
         $recapData = collect($recapDataArray);
+        $hasLegacyScores = $recapData->contains(fn ($data) => ($data['legacy_score'] ?? 0) > 0);
 
         // Get all unique juries who have scored this event
         $allJuries = JuryScore::whereHas('registration', function($query) use ($event) {
@@ -416,7 +611,40 @@ class JuryScoreController extends Controller
         // Get total number of juries
         $totalJuries = $allJuries->count();
 
-        return view('jury.recap', compact('event', 'recapData', 'juryFormTemplates', 'totalFormTemplates', 'allJuries', 'totalJuries'));
+        return view('jury.recap', compact('event', 'recapData', 'juryFormTemplates', 'totalFormTemplates', 'allJuries', 'totalJuries', 'hasLegacyScores'));
+    }
+
+    /**
+     * Build validation rules, Indonesian messages, and human labels for the
+     * criteria attached to the jury's assigned form.
+     *
+     * @return array{0: array<string, array<int, string>>, 1: array<string, string>, 2: array<string, string>}
+     */
+    private function criteriaRules($formTemplate): array
+    {
+        $rules = [];
+        $attributes = [];
+
+        foreach ($formTemplate->criteria_fields as $index => $field) {
+            $fieldName = "criteria_{$index}";
+            $presence = !empty($field['required']) ? 'required' : 'nullable';
+
+            $rules[$fieldName] = $field['type'] === 'score'
+                ? [$presence, 'numeric', 'min:0', 'max:' . ($field['max'] ?? 100)]
+                : [$presence, 'string', 'max:2000'];
+
+            $attributes[$fieldName] = $field['label'] ?? ('Kriteria ' . ($index + 1));
+        }
+
+        $messages = [
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute tidak boleh kurang dari :min.',
+            'max' => ':attribute tidak boleh lebih dari :max.',
+            'string' => ':attribute harus berupa teks.',
+        ];
+
+        return [$rules, $messages, $attributes];
     }
 
     private function getAddressFromResponse($registration)

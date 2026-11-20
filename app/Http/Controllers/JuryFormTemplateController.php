@@ -14,15 +14,16 @@ class JuryFormTemplateController extends Controller
     {
         // Check authorization - only admin and admin_owner
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
         $templates = JuryFormTemplate::getTemplates();
-        $customTemplates = CustomJuryFormTemplate::orderBy('created_at', 'desc')->get();
+        $customTemplates = CustomJuryFormTemplate::query()
+            ->when(!$user->canManageAllEvents(), fn ($query) => $query->where('created_by', $user->id))
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Force fresh data from database - bypass all caching
-        \DB::connection()->getPdo()->exec('SET SESSION query_cache_type = OFF');
         $existingForm = JuryFormTemplate::where('event_id', $event->id)
             ->orderBy('id', 'desc')
             ->first();
@@ -45,22 +46,22 @@ class JuryFormTemplateController extends Controller
     {
         // Check authorization - only admin and admin_owner
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Force fresh data from database - bypass all caching
-        DB::connection()->getPdo()->exec('SET SESSION query_cache_type = OFF');
-        $existingForm = JuryFormTemplate::where('event_id', $event->id)
-            ->orderBy('id', 'desc')
-            ->first();
+        // Tanpa ?form=ID berarti mode buat form baru.
+        // Dengan ?form=ID berarti mengedit form tertentu pada event ini.
+        $existingForm = null;
+        $formId = request()->integer('form');
 
-        if (!$existingForm) {
-            $event->load('juryFormTemplate');
-            $existingForm = $event->juryFormTemplate;
-        }
+        if ($formId) {
+            $existingForm = $event->juryFormTemplates()->find($formId);
 
-        if ($existingForm) {
+            if (!$existingForm) {
+                abort(404, 'Form penilaian tidak ditemukan untuk event ini.');
+            }
+
             // Force decode JSON to ensure fresh data
             $existingForm->criteria_fields = json_decode(json_encode($existingForm->criteria_fields), true);
         }
@@ -72,7 +73,7 @@ class JuryFormTemplateController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -81,73 +82,41 @@ class JuryFormTemplateController extends Controller
             'use_default_score' => 'nullable|boolean',
             'editing_template' => 'nullable|string',
             'template_id' => 'nullable|integer',
-            'name' => 'nullable|string|max:255', // Nama form: Juri Vokal, Juri Adab, dll
+            'name' => 'required|string|max:255', // Nama form: Juri Vokal, Juri Adab, dll
             'form_template_id' => 'nullable|integer', // ID form yang sedang di-edit (jika edit)
         ]);
 
         $criteriaFields = json_decode($validated['criteria_fields'], true);
-        $formName = $request->input('name');
-        $formTemplateId = $request->input('form_template_id');
-        
-        // Validate form name
-        if (empty($formName) || trim($formName) === '') {
-            $formName = 'Form Juri';
-        }
+        $formName = trim($validated['name']);
+        $formTemplateId = $validated['form_template_id'] ?? null;
+        $useDefaultScore = $request->boolean('use_default_score');
 
-        // If editing existing form template
         if ($formTemplateId) {
-            $existingForm = JuryFormTemplate::where('event_id', $event->id)
-                ->where('id', $formTemplateId)
-                ->first();
-            
-            if ($existingForm) {
-                $existingForm->update([
-                    'name' => $formName,
-                    'criteria_fields' => $criteriaFields,
-                    'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
-                ]);
-                $newForm = $existingForm;
-            } else {
-                // Create new if not found
-                $newForm = JuryFormTemplate::create([
-                    'event_id' => $event->id,
-                    'name' => $formName,
-                    'criteria_fields' => $criteriaFields,
-                    'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
-                ]);
+            // Edit form tertentu milik event ini
+            $newForm = $event->juryFormTemplates()->find($formTemplateId);
+
+            if (!$newForm) {
+                return back()->withInput()
+                    ->with('error', 'Form penilaian tidak ditemukan untuk event ini.');
             }
+
+            $newForm->update([
+                'name' => $formName,
+                'criteria_fields' => $criteriaFields,
+                'use_default_score' => $useDefaultScore,
+            ]);
+
+            $formMessage = "Form \"{$formName}\" berhasil diperbarui.";
         } else {
-            // For backward compatibility: if no name provided and only one form exists, update it
-            // Otherwise, create new form
-            $existingForms = $event->juryFormTemplates()->count();
-            
-            if ($existingForms === 1 && !$formName) {
-                // Update existing single form (backward compatibility)
-                $existingForm = $event->juryFormTemplate;
-                if ($existingForm) {
-                    $existingForm->update([
-                        'criteria_fields' => $criteriaFields,
-                        'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
-                    ]);
-                    $newForm = $existingForm;
-                } else {
-                    // Create new if not found
-                    $newForm = JuryFormTemplate::create([
-                        'event_id' => $event->id,
-                        'name' => $formName,
-                        'criteria_fields' => $criteriaFields,
-                        'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
-                    ]);
-                }
-            } else {
-                // Create new form (support multiple forms)
-                $newForm = JuryFormTemplate::create([
-                    'event_id' => $event->id,
-                    'name' => $formName ?? 'Form Juri',
-                    'criteria_fields' => $criteriaFields,
-                    'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
-                ]);
-            }
+            // Buat form baru: satu event boleh punya banyak form juri
+            $newForm = JuryFormTemplate::create([
+                'event_id' => $event->id,
+                'name' => $formName,
+                'criteria_fields' => $criteriaFields,
+                'use_default_score' => $useDefaultScore,
+            ]);
+
+            $formMessage = "Form \"{$formName}\" berhasil dibuat.";
         }
 
         // Auto-save as custom template HANYA jika BUKAN dari edit template
@@ -158,9 +127,13 @@ class JuryFormTemplateController extends Controller
             // Update existing template
             $template = CustomJuryFormTemplate::find($templateId);
             if ($template) {
+                if (!$user->canManageAllEvents() && $template->created_by !== $user->id) {
+                    abort(403, 'Unauthorized action.');
+                }
+
                 $template->update([
                     'criteria_fields' => $criteriaFields,
-                    'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true
+                    'use_default_score' => $useDefaultScore
                 ]);
             }
         } elseif (!$isEditingTemplate) {
@@ -170,7 +143,7 @@ class JuryFormTemplateController extends Controller
                 'name' => $templateName,
                 'description' => 'Auto-saved dari form penilaian event ' . $event->name,
                 'criteria_fields' => $criteriaFields,
-                'use_default_score' => $request->input('use_default_score', false) == '1' || $request->input('use_default_score', false) === true,
+                'use_default_score' => $useDefaultScore,
                 'created_by' => auth()->id()
             ]);
         }
@@ -178,8 +151,13 @@ class JuryFormTemplateController extends Controller
         // Clear any cached data
         cache()->forget('jury_form_' . $event->id);
 
-        return redirect()->route('events.jury-form.custom', $event)
-            ->with('success', $isEditingTemplate && $templateId ? '✅ Form penilaian juri berhasil disimpan dan template berhasil diupdate!' : '✅ Form penilaian juri berhasil disimpan' . (!$isEditingTemplate ? ' dan otomatis tersimpan sebagai template!' : '!'))
+        $successMessage = $isEditingTemplate && $templateId
+            ? '✅ Form penilaian juri berhasil disimpan dan template berhasil diupdate!'
+            : '✅ ' . $formMessage . (!$isEditingTemplate ? ' Otomatis tersimpan sebagai template.' : '');
+
+        return redirect()
+            ->route('events.jury-form.custom', ['event' => $event, 'form' => $newForm->id])
+            ->with('success', $successMessage)
             ->with('show_success_modal', true);
     }
 
@@ -187,7 +165,7 @@ class JuryFormTemplateController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -197,14 +175,10 @@ class JuryFormTemplateController extends Controller
             abort(404, 'Template tidak ditemukan');
         }
 
-        // Delete existing form if any
-        if ($event->juryFormTemplate) {
-            $event->juryFormTemplate->delete();
-        }
-
+        // Tambahkan sebagai form baru; form yang sudah ada tidak ditimpa
         JuryFormTemplate::create([
             'event_id' => $event->id,
-            'name' => $templates[$template]['name'], // Gunakan nama template sebagai nama form
+            'name' => $this->uniqueFormName($event, $templates[$template]['name']),
             'criteria_fields' => $templates[$template]['fields'],
             'use_default_score' => $templates[$template]['use_default_score']
         ]);
@@ -215,6 +189,11 @@ class JuryFormTemplateController extends Controller
 
     public function saveAsTemplate(Request $request, Event $event)
     {
+        $user = auth()->user();
+        if (!$user->canManageEvent($event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'template_name' => 'required|string|max:255',
             'template_description' => 'nullable|string',
@@ -240,18 +219,18 @@ class JuryFormTemplateController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isAdminOwner()) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Delete existing form if any
-        if ($event->juryFormTemplate) {
-            $event->juryFormTemplate->delete();
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
         }
 
+        // Tambahkan sebagai form baru; form yang sudah ada tidak ditimpa
         JuryFormTemplate::create([
             'event_id' => $event->id,
-            'name' => $customTemplate->name, // Gunakan nama custom template sebagai nama form
+            'name' => $this->uniqueFormName($event, $customTemplate->name),
             'criteria_fields' => $customTemplate->criteria_fields,
             'use_default_score' => $customTemplate->use_default_score
         ]);
@@ -260,8 +239,35 @@ class JuryFormTemplateController extends Controller
             ->with('template_success', "Form penilaian juri berhasil dibuat menggunakan template {$customTemplate->name}!");
     }
 
+    /**
+     * Pastikan nama form unik di dalam satu event agar beberapa form mudah dibedakan.
+     */
+    private function uniqueFormName(Event $event, string $baseName): string
+    {
+        $baseName = trim($baseName) !== '' ? trim($baseName) : 'Form Juri';
+        $name = $baseName;
+        $counter = 2;
+
+        while ($event->juryFormTemplates()->where('name', $name)->exists()) {
+            $name = "{$baseName} ({$counter})";
+            $counter++;
+        }
+
+        return $name;
+    }
+
     public function updateCustomTemplate(Request $request, CustomJuryFormTemplate $customTemplate)
     {
+        $user = auth()->user();
+
+        if (!$user->canManageEvents()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -281,6 +287,16 @@ class JuryFormTemplateController extends Controller
 
     public function deleteCustomTemplate(CustomJuryFormTemplate $customTemplate)
     {
+        $user = auth()->user();
+
+        if (!$user->canManageEvents()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (!$user->canManageAllEvents() && $customTemplate->created_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $customTemplate->delete();
         return back()->with('success', 'Template berhasil dihapus!');
     }

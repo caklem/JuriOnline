@@ -8,8 +8,10 @@ use App\Http\Controllers\JuryFormTemplateController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\JuryScoreController;
+use App\Http\Controllers\JuryInvitationController;
 use App\Http\Controllers\EventJuryFormAssignmentController;
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\OwnerUserController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -27,6 +29,9 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard (role-based)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Notifikasi (semua peran)
+    Route::post('/notifications/read', [JuryInvitationController::class, 'markNotificationsRead'])->name('jury.notifications.read');
+
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -34,20 +39,30 @@ Route::middleware(['auth'])->group(function () {
 
     // Participant routes
     Route::middleware(['role:participant'])->group(function () {
-        Route::post('/events/{event}/register', [RegistrationController::class, 'store'])->name('registrations.store');
+        Route::post('/events/{event}/register', [RegistrationController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('registrations.store');
         Route::get('/my-registrations', [RegistrationController::class, 'myRegistrations'])->name('registrations.my');
-        Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
 
         // Payment upload
         Route::get('/registrations/{registration}/payment', [PaymentController::class, 'create'])->name('payments.create');
-        Route::post('/registrations/{registration}/payment', [PaymentController::class, 'store'])->name('payments.store');
+        Route::post('/registrations/{registration}/payment', [PaymentController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('payments.store');
     });
 
-    // Organizer routes
-    Route::middleware(['role:organizer,admin,admin_owner'])->group(function () {
+    // Registration detail: participant owner or event manager
+    Route::middleware(['role:participant,admin,admin_owner'])->group(function () {
+        Route::get('/registrations/{registration}', [RegistrationController::class, 'show'])->name('registrations.show');
+        Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof'])->name('payments.proof');
+    });
+
+    // Event management routes (admin)
+    Route::middleware(['role:admin,admin_owner'])->group(function () {
         Route::resource('events', EventController::class)->except(['index']);
         Route::get('/my-events', [EventController::class, 'index'])->name('events.index');
         Route::post('/events/{event}/update-status', [EventController::class, 'updateStatus'])->name('events.update-status');
+        Route::post('/events/{event}/scoring', [EventController::class, 'updateScoring'])->name('events.scoring');
         Route::get('/events/{event}/participants', [RegistrationController::class, 'participants'])->name('events.participants');
         Route::patch('/registrations/{registration}/status', [RegistrationController::class, 'updateStatus'])->name('registrations.update-status');
 
@@ -81,12 +96,27 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/custom-jury-templates/{customTemplate}', [JuryFormTemplateController::class, 'deleteCustomTemplate'])->name('custom-jury-templates.delete');
     });
 
+    // Admin Owner (super admin) only
+    Route::middleware(['role:admin_owner'])->prefix('owner')->name('owner.')->group(function () {
+        Route::get('/users', [OwnerUserController::class, 'index'])->name('users.index');
+        Route::post('/users', [OwnerUserController::class, 'store'])->name('users.store');
+        Route::patch('/users/{user}/role', [OwnerUserController::class, 'updateRole'])->name('users.role');
+        Route::patch('/users/{user}/scope', [OwnerUserController::class, 'updateScope'])->name('users.scope');
+        Route::patch('/users/{user}/status', [OwnerUserController::class, 'toggleStatus'])->name('users.status');
+    });
+
     // Jury routes
     Route::middleware(['role:jury,admin,admin_owner'])->prefix('jury')->name('jury.')->group(function () {
+        Route::get('/invitations', [JuryInvitationController::class, 'index'])->name('invitations.index');
+        Route::post('/invitations/{assignment}/accept', [JuryInvitationController::class, 'accept'])->name('invitations.accept');
+        Route::post('/invitations/{assignment}/decline', [JuryInvitationController::class, 'decline'])->name('invitations.decline');
         Route::get('/events', [JuryScoreController::class, 'index'])->name('events');
         Route::get('/events/{event}/participants', [JuryScoreController::class, 'participants'])->name('participants');
+        Route::get('/events/{event}/form', [JuryScoreController::class, 'form'])->name('form');
         Route::get('/registrations/{registration}/score', [JuryScoreController::class, 'create'])->name('score');
-        Route::post('/registrations/{registration}/score', [JuryScoreController::class, 'store'])->name('score.store');
+        Route::post('/registrations/{registration}/score', [JuryScoreController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('score.store');
         Route::get('/scores/{juryScore}/edit', [JuryScoreController::class, 'edit'])->name('edit-score');
         Route::patch('/scores/{juryScore}', [JuryScoreController::class, 'update'])->name('update-score');
         Route::get('/events/{event}/leaderboard', [JuryScoreController::class, 'leaderboard'])->name('leaderboard');
@@ -97,15 +127,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/all-scores', [JuryScoreController::class, 'allScores'])->name('all-scores');
     });
 
-    // Event recap (for organizers and admins)
-    Route::middleware(['role:organizer,admin,admin_owner'])->group(function () {
+    // Event recap and jury assignment (admin)
+    Route::middleware(['role:admin,admin_owner'])->group(function () {
         Route::get('/events/{event}/recap', [JuryScoreController::class, 'recap'])->name('events.recap');
         
         // Jury Form Assignment Management
         Route::get('/events/{event}/jury-assignments', [EventJuryFormAssignmentController::class, 'index'])->name('events.jury-assignments.index');
+        Route::post('/events/{event}/jury-accounts', [EventJuryFormAssignmentController::class, 'storeAccount'])->name('events.jury-accounts.store');
         Route::post('/events/{event}/jury-assignments', [EventJuryFormAssignmentController::class, 'store'])->name('events.jury-assignments.store');
         Route::post('/events/{event}/jury-assignments/quick-create', [EventJuryFormAssignmentController::class, 'quickCreate'])->name('events.jury-assignments.quick-create');
         Route::delete('/events/{event}/jury-assignments/{assignment}', [EventJuryFormAssignmentController::class, 'destroy'])->name('events.jury-assignments.destroy');
+        Route::post('/events/{event}/jury-assignments/{assignment}/reset-password', [EventJuryFormAssignmentController::class, 'resetJuryPassword'])->name('events.jury-assignments.reset-password');
     });
 });
 

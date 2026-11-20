@@ -78,9 +78,9 @@
 -   [ ] Can see Admin Owner dashboard
 -   [ ] Can logout successfully
 
-### Test 2: Event Creation (Organizer)
+### Test 2: Event Creation (Admin Event)
 
--   [ ] Login as organizer@example.com / password
+-   [ ] Login as Admin Event (organizer@example.com) / password
 -   [ ] Click "Buat Event Baru"
 -   [ ] Fill form with test data:
     -   Name: "Test Event"
@@ -112,9 +112,9 @@
 -   [ ] Payment uploaded successfully
 -   [ ] Status shows "Menunggu Verifikasi"
 
-### Test 5: Payment Verification (Organizer)
+### Test 5: Payment Verification (Admin Event)
 
--   [ ] Logout, login as organizer@example.com / password
+-   [ ] Logout, login as Admin Event (organizer@example.com) / password
 -   [ ] Click "Verifikasi Pembayaran"
 -   [ ] See pending payment
 -   [ ] Click "Lihat Bukti" → Image opens
@@ -159,7 +159,18 @@
 -   [ ] Click "Lihat Semua Pembayaran" → See payment
 -   [ ] All monitoring features work
 
-### Test 9: File Upload/Download
+### Test 9: Admin Owner User Management
+
+-   [ ] Login as owner@example.com / password
+-   [ ] Open sidebar "Admin Owner" → "Manajemen Pengguna" (only owner sees this menu)
+-   [ ] Create a new account with a chosen role → user can login
+-   [ ] Change another user's role → badge and access follow the new role
+-   [ ] Try changing your own role → rejected with an error message
+-   [ ] Deactivate a user → that user gets "Akun Anda dinonaktifkan" on login
+-   [ ] Activate the same user again → login works and redirects to dashboard
+-   [ ] Login as admin@example.com → `/owner/users` returns 403
+
+### Test 10: File Upload/Download
 
 -   [ ] Event banner displays correctly
 -   [ ] Payment proof can be viewed
@@ -168,10 +179,10 @@
     -   [ ] storage/app/public/payment-proofs/
 -   [ ] Public access via /storage/ works
 
-### Test 10: Authorization
+### Test 11: Authorization
 
--   [ ] Peserta cannot access organizer pages (403)
--   [ ] Organizer cannot access other organizer's events
+-   [ ] Peserta cannot access admin event pages (403)
+-   [ ] Admin Event cannot access other admin event's events
 -   [ ] Juri cannot give score to unverified participant
 -   [ ] Role middleware working correctly
 
@@ -295,8 +306,8 @@ icacls "bootstrap\cache" /grant Everyone:F /T
 
 ### Functionality ✅
 
--   [ ] All 5 roles can login
--   [ ] Organizer can create events
+-   [ ] All 4 roles (5 demo accounts) can login
+-   [ ] Admin Event can create events
 -   [ ] Peserta can register
 -   [ ] Payment upload works
 -   [ ] Payment verification works

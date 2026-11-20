@@ -5,14 +5,14 @@
 **JuriOnline** adalah sistem manajemen event berbasis web yang mendukung:
 
 -   Pendaftaran peserta dengan pembayaran manual
--   Verifikasi pembayaran oleh admin/organizer
+-   Verifikasi pembayaran oleh Admin Global/Admin Event
 -   Penjurian dengan feedback public dan private
 -   Multi-role access control
 -   Event dengan masa aktif terbatas
 
 ---
 
-## 👥 ROLE SYSTEM - 5 ROLES
+## 👥 ROLE SYSTEM - 4 ROLE (ADMIN DENGAN SCOPE `all`/`own`)
 
 ### 1. 🔱 Admin Owner (Super Administrator)
 
@@ -20,20 +20,21 @@
 
 **Hak Akses**:
 
--   ✅ Monitoring semua event dari semua organizer
+-   ✅ Monitoring semua event dari semua admin event
 -   ✅ Melihat semua transaksi pembayaran
 -   ✅ Statistik lengkap sistem (total event, revenue, dll)
+-   ✅ Manajemen pengguna: buat akun, ubah role, aktif/nonaktifkan akun
 -   ✅ Akses ke semua fitur tanpa batasan
 -   ✅ Dapat melakukan semua fungsi admin
 
 **Use Case**:
 
 -   Monitor kesehatan sistem
--   Oversight semua organizer
+-   Oversight semua admin event
 -   Tracking revenue total
 -   Audit trail
 
-### 2. 👨‍💼 Admin
+### 2. 👨‍💼 Admin Global (`admin`, `event_scope=all`)
 
 **Fungsi**: Administrator yang mengelola sistem
 
@@ -51,9 +52,9 @@
 -   Handle dispute
 -   Moderasi sistem
 
-### 3. 🎪 Organizer (Event Organizer)
+### 3. 🎪 Admin Event (`admin`, `event_scope=own`)
 
-**Fungsi**: Pembuat dan pengelola event
+**Fungsi**: Pembuat dan pengelola event miliknya
 
 **Hak Akses**:
 
@@ -69,7 +70,7 @@
 
 **Batasan**:
 
--   ❌ Tidak bisa mengakses event organizer lain
+-   ❌ Tidak bisa mengakses event admin event lain
 -   ❌ Tidak bisa verifikasi pembayaran event lain
 
 **Use Case**:
@@ -114,7 +115,7 @@
 -   ✅ Lihat daftar peserta terverifikasi
 -   ✅ Beri nilai (0-100)
 -   ✅ Input public feedback (terlihat peserta)
--   ✅ Input private evaluation (hanya admin/organizer)
+-   ✅ Input private evaluation (hanya admin pengelola event)
 -   ✅ Edit penilaian yang sudah dibuat
 -   ✅ Lihat leaderboard
 
@@ -127,16 +128,16 @@
 
 -   Evaluasi peserta kompetisi
 -   Beri feedback konstruktif
--   Beri catatan internal ke organizer
+-   Beri catatan internal ke admin event
 
 ---
 
 ## 🔄 WORKFLOW SISTEM
 
-### A. Event Creation Flow (Organizer)
+### A. Event Creation Flow (Admin Event)
 
 ```
-1. Organizer login
+1. Admin Event login
 2. Klik "Buat Event Baru"
 3. Isi form:
    - Nama event
@@ -174,10 +175,10 @@
 9. Tunggu verifikasi
 ```
 
-### C. Payment Verification Flow (Admin/Organizer)
+### C. Payment Verification Flow (Admin Global/Admin Event)
 
 ```
-1. Login sebagai admin atau organizer
+1. Login sebagai Admin Global atau Admin Event
 2. Klik "Verifikasi Pembayaran" di navbar
 3. Lihat daftar pembayaran pending:
    - No. registrasi
@@ -222,7 +223,7 @@
    - Nilai (0-100, required)
    - Public Feedback (opsional, terlihat peserta)
      Contoh: "Presentasi sangat baik, keep it up!"
-   - Private Evaluation (opsional, hanya admin/organizer)
+   - Private Evaluation (opsional, hanya admin pengelola event)
      Contoh: "Perlu improvement di technical skills"
 8. Submit → Nilai tersimpan
 9. Sistem otomatis hitung rata-rata jika ada multiple juri
@@ -234,7 +235,7 @@
 ```
 1. Admin Owner login
 2. Dashboard menampilkan:
-   - Total event (semua organizer)
+   - Total event (semua admin event)
    - Event aktif
    - Total pendaftaran
    - Total revenue (Rp)
@@ -284,7 +285,7 @@
 
 ```sql
 - id (PK)
-- name (admin_owner, admin, organizer, participant, jury)
+- name (admin_owner, admin dengan event_scope all/own, participant, jury)
 - display_name
 - description
 - timestamps
@@ -367,7 +368,7 @@
 - jury_id (FK → users)
 - score (decimal 5,2, range 0-100)
 - public_feedback (nullable, terlihat peserta)
-- private_evaluation (nullable, hanya admin/organizer)
+- private_evaluation (nullable, hanya admin pengelola event)
 - timestamps
 - UNIQUE(registration_id, jury_id) ← 1 juri 1x per peserta
 ```
@@ -376,22 +377,23 @@
 
 ## 🔒 AUTHORIZATION MATRIX
 
-| Feature                    | Admin Owner | Admin | Organizer  | Participant | Jury        |
-| -------------------------- | ----------- | ----- | ---------- | ----------- | ----------- |
-| Browse public events       | ✅          | ✅    | ✅         | ✅          | ✅          |
-| Create event               | ✅          | ✅    | ✅         | ❌          | ❌          |
-| Edit own event             | ✅          | ✅    | ✅         | ❌          | ❌          |
-| Edit any event             | ✅          | ✅    | ❌         | ❌          | ❌          |
-| Delete event               | ✅          | ✅    | Own only   | ❌          | ❌          |
-| Register to event          | ❌          | ❌    | ❌         | ✅          | ❌          |
-| Upload payment             | ❌          | ❌    | ❌         | ✅          | ❌          |
-| Verify payment (own event) | ✅          | ✅    | ✅         | ❌          | ❌          |
-| Verify payment (any event) | ✅          | ✅    | ❌         | ❌          | ❌          |
-| Give score                 | ✅          | ✅    | ❌         | ❌          | ✅          |
-| View all events            | ✅          | ✅    | Own only   | Public only | Active only |
-| View all payments          | ✅          | ✅    | Own events | Own only    | ❌          |
-| View private evaluation    | ✅          | ✅    | Own events | ❌          | Own only    |
-| View statistics            | ✅          | ✅    | Own only   | Own only    | Own only    |
+| Feature                    | Admin Owner | Admin Global | Admin Event | Participant | Jury          |
+| -------------------------- | ----------- | ------------ | ----------- | ----------- | ------------- |
+| Browse public events       | ✅          | ✅           | ✅          | ✅          | ✅            |
+| Create event               | ✅          | ✅           | ✅          | ❌          | ❌            |
+| Edit own event             | ✅          | ✅           | ✅          | ❌          | ❌            |
+| Edit any event             | ✅          | ✅           | ❌          | ❌          | ❌            |
+| Delete event               | ✅          | ✅           | Own only    | ❌          | ❌            |
+| Register to event          | ❌          | ❌           | ❌          | ✅          | ❌            |
+| Upload payment             | ❌          | ❌           | ❌          | ✅          | ❌            |
+| Verify payment (own event) | ✅          | ✅           | ✅          | ❌          | ❌            |
+| Verify payment (any event) | ✅          | ✅           | ❌          | ❌          | ❌            |
+| Give score                 | ✅          | ✅           | Own event   | ❌          | ✅ (assigned) |
+| View all events            | ✅          | ✅           | Own only    | Public only | Active only   |
+| View all payments          | ✅          | ✅           | Own events  | Own only    | ❌            |
+| View private evaluation    | ✅          | ✅           | Own events  | ❌          | Own only      |
+| View statistics            | ✅          | ✅           | Own only    | Own only    | Own only      |
+| Manage users & roles       | ✅          | ❌           | ❌          | ❌          | ❌            |
 
 ---
 
@@ -426,7 +428,7 @@ JuriOnline/
 │   │   ├── 2024_01_01_000005_create_payments_table.php
 │   │   └── 2024_01_01_000006_create_jury_scores_table.php
 │   └── seeders/
-│       ├── RoleSeeder.php                    (Seed 5 roles)
+│       ├── RoleSeeder.php                    (Seed 4 roles)
 │       └── DatabaseSeeder.php                (Seed users + categories)
 ├── resources/views/
 │   ├── layouts/
@@ -434,14 +436,14 @@ JuriOnline/
 │   ├── dashboard/
 │   │   ├── admin-owner.blade.php
 │   │   ├── admin.blade.php
-│   │   ├── organizer.blade.php
+│   │   ├── admin-event.blade.php
 │   │   ├── participant.blade.php
 │   │   └── jury.blade.php
 │   ├── events/
 │   │   ├── public.blade.php                  (Browse events)
 │   │   ├── detail.blade.php                  (Event detail + register)
 │   │   ├── index.blade.php                   (Manage events)
-│   │   ├── show.blade.php                    (Event detail organizer)
+│   │   ├── show.blade.php                    (Event detail admin event)
 │   │   └── create.blade.php                  (Create event form)
 │   ├── registrations/
 │   │   └── show.blade.php                    (Detail pendaftaran)
@@ -513,7 +515,7 @@ php artisan serve
 ### Scenario 1: Workshop Coding
 
 ```
-1. Login as organizer@example.com
+1. Login as Admin Event (organizer@example.com)
 2. Create event:
    - Name: "Workshop Laravel Advanced"
    - Category: Workshop
@@ -531,7 +533,7 @@ php artisan serve
 9. Upload payment proof (fake screenshot)
 10. Logout
 
-11. Login as organizer@example.com
+11. Login as Admin Event (organizer@example.com)
 12. Go to "Verifikasi Pembayaran"
 13. See pending payment from peserta
 14. Click "Lihat Bukti"
@@ -589,7 +591,7 @@ php artisan serve
     -   Motivational
     -   Constructive
     -   Encourage improvement
--   **Private Evaluation**: Only admin/organizer
+-   **Private Evaluation**: Only admin managing the event
     -   Internal assessment
     -   Sensitive remarks
     -   Management notes
@@ -633,7 +635,7 @@ php artisan serve
 
 ## 🎓 BEST PRACTICES
 
-### For Organizers:
+### For Admin Event:
 
 1. Set realistic quota
 2. Clear event description
@@ -665,7 +667,7 @@ php artisan serve
 ### For Admin Owner:
 
 1. Monitor system health
-2. Review organizer performance
+2. Review admin event performance
 3. Check payment accuracy
 4. Strategic oversight
 

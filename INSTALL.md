@@ -92,14 +92,14 @@ Email: owner@example.com
 Password: password
 ```
 
-### Admin (Manage Events)
+### Admin Global (role admin, event_scope=all)
 
 ```
 Email: admin@example.com
 Password: password
 ```
 
-### Organizer (Create Events)
+### Admin Event (role admin, event_scope=own)
 
 ```
 Email: organizer@example.com

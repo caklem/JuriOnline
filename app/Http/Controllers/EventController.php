@@ -13,19 +13,17 @@ class EventController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isAdminOwner()) {
-            // Admin Owner can see all events
-            $events = Event::with(['organizer', 'category'])->latest()->paginate(15);
-        } elseif ($user->isOrganizer()) {
-            // Organizer can see their own events
-            $events = Event::where('organizer_id', $user->id)
-                ->with(['organizer', 'category'])
-                ->latest()
-                ->paginate(15);
-        } else {
-            // Admin can see all events
-            $events = Event::with(['organizer', 'category'])->latest()->paginate(15);
+        if (!$user->canManageEvents()) {
+            abort(403, 'Unauthorized action.');
         }
+
+        $eventsQuery = Event::with(['organizer', 'category']);
+
+        if (!$user->canManageAllEvents()) {
+            $eventsQuery->where('organizer_id', $user->id);
+        }
+
+        $events = $eventsQuery->latest()->paginate(15);
 
         return view('events.index', compact('events'));
     }
@@ -46,11 +44,12 @@ class EventController extends Controller
             'quota' => 'required|integer|min:1',
             'registration_start' => 'required|date',
             'registration_end' => 'required|date|after:registration_start',
+            'event_date' => 'required|date|after_or_equal:event_start|before_or_equal:event_end',
             'event_start' => 'required|date',
-            'event_end' => 'required|date|after:event_start',
+            'event_end' => 'required|date|after_or_equal:event_start',
             'location' => 'nullable|string|max:255',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+        ], $this->dateValidationMessages());
 
         $validated['organizer_id'] = auth()->id();
         $validated['status'] = 'draft';
@@ -71,7 +70,7 @@ class EventController extends Controller
 
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -82,7 +81,7 @@ class EventController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -94,7 +93,7 @@ class EventController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -106,12 +105,13 @@ class EventController extends Controller
             'quota' => 'required|integer|min:' . $event->registered_count,
             'registration_start' => 'required|date',
             'registration_end' => 'required|date|after:registration_start',
+            'event_date' => 'required|date|after_or_equal:event_start|before_or_equal:event_end',
             'event_start' => 'required|date',
-            'event_end' => 'required|date|after:event_start',
+            'event_end' => 'required|date|after_or_equal:event_start',
             'location' => 'nullable|string|max:255',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'required|in:draft,active,closed,completed',
-        ]);
+        ], $this->dateValidationMessages());
 
         if ($request->hasFile('banner')) {
             // Delete old banner
@@ -131,7 +131,7 @@ class EventController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -150,7 +150,7 @@ class EventController extends Controller
     {
         // Check authorization
         $user = auth()->user();
-        if ($user->isOrganizer() && $event->organizer_id !== $user->id) {
+        if (!$user->canManageEvent($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -171,13 +171,46 @@ class EventController extends Controller
             ->with('success', "Status event berhasil diubah menjadi {$statusText[$validated['status']]}!");
     }
 
+    /**
+     * Buka / tutup penilaian peserta, atau kembalikan ke mode otomatis (hari H).
+     */
+    public function updateScoring(Request $request, Event $event)
+    {
+        $user = auth()->user();
+
+        if (!$user->canManageEvent($event)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'mode' => 'required|in:open,closed,auto',
+        ], [
+            'mode.in' => 'Mode penilaian tidak dikenali.',
+        ]);
+
+        $event->update([
+            'scoring_enabled' => match ($validated['mode']) {
+                'open' => true,
+                'closed' => false,
+                default => null,
+            },
+        ]);
+
+        $message = match ($validated['mode']) {
+            'open' => 'Penilaian peserta dibuka. Juri sekarang bisa menilai peserta.',
+            'closed' => 'Penilaian peserta ditutup. Juri tidak bisa menilai sampai dibuka lagi.',
+            default => 'Penilaian kembali ke mode otomatis: terbuka sejak tanggal hari H.',
+        };
+
+        return back()->with('success', $message);
+    }
+
     // Public view for participants
     public function publicIndex()
     {
         // If user is authenticated, show events page
         if (auth()->check()) {
             $events = Event::where('status', 'active')
-                ->where('registration_end', '>=', now())
                 ->with(['organizer', 'category'])
                 ->latest()
                 ->paginate(12);
@@ -206,5 +239,22 @@ class EventController extends Controller
         }
 
         return view('events.detail', compact('event', 'userRegistration'));
+    }
+
+    /**
+     * Pesan validasi tanggal (hari H & periode) dalam bahasa Indonesia.
+     *
+     * @return array<string, string>
+     */
+    private function dateValidationMessages(): array
+    {
+        return [
+            'registration_end.after' => 'Tanggal akhir pendaftaran harus setelah tanggal mulai pendaftaran.',
+            'event_end.after_or_equal' => 'Tanggal akhir event tidak boleh sebelum tanggal mulai event.',
+            'event_date.required' => 'Tanggal hari H wajib diisi.',
+            'event_date.date' => 'Tanggal hari H harus berupa tanggal yang valid.',
+            'event_date.after_or_equal' => 'Tanggal hari H tidak boleh sebelum tanggal mulai event.',
+            'event_date.before_or_equal' => 'Tanggal hari H tidak boleh setelah tanggal akhir event.',
+        ];
     }
 }
