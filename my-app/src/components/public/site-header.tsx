@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import Button from "@/components/arc/button/button";
 import { CtaLink } from "./cta-link";
 import { BrandLockup } from "@/components/brand/lockup";
+import type { OptionalViewer } from "@/lib/viewer";
 
 const LINKS = [
   { href: "/", label: "Beranda" },
@@ -21,7 +22,7 @@ function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteHeader() {
+export function SiteHeader({ viewer = null }: { viewer?: OptionalViewer | null }) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
@@ -71,15 +72,28 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
-          >
-            Masuk
-          </Link>
-          <CtaLink href="/register" size="sm">
-            Daftar gratis
-          </CtaLink>
+          {viewer ? (
+            <>
+              <span className="max-w-[12rem] truncate text-sm font-medium text-slate-600" title={viewer.name}>
+                {viewer.name}
+              </span>
+              <CtaLink href="/dashboard" size="sm">
+                Dashboard
+              </CtaLink>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950"
+              >
+                Masuk
+              </Link>
+              <CtaLink href="/register" size="sm">
+                Daftar gratis
+              </CtaLink>
+            </>
+          )}
         </div>
 
         <div className="md:hidden">
@@ -122,20 +136,35 @@ export function SiteHeader() {
                 </Link>
               ))}
               <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-4">
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg bg-slate-950 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Daftar gratis
-                </Link>
+                {viewer ? (
+                  <>
+                    <p className="truncate px-1 text-xs font-medium text-slate-500">{viewer.email || viewer.name}</p>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setOpen(false)}
+                      className="rounded-lg bg-slate-950 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      Dashboard
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className="rounded-lg border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Masuk
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpen(false)}
+                      className="rounded-lg bg-slate-950 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      Daftar gratis
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </motion.div>

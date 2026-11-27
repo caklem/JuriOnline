@@ -8,15 +8,15 @@ import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
 
-export function LoginForm() {
+export function LoginForm({ next = "/dashboard" }: { next?: string }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   useEffect(() => {
     if (!state.ok) return;
-    router.replace("/dashboard");
+    router.replace(next);
     router.refresh();
-  }, [state.ok, router]);
+  }, [state.ok, next, router]);
 
   return (
     <form action={formAction} className="mt-8 flex flex-col gap-4">
@@ -55,7 +55,7 @@ export function LoginForm() {
       <div className="text-center text-xs leading-5 text-[var(--text-muted)]">
         <p>
           Belum punya akun?{" "}
-          <a href="/register" className="font-semibold underline underline-offset-2">Daftar sekarang</a>
+          <a href={`/register?next=${encodeURIComponent(next)}`} className="font-semibold underline underline-offset-2">Daftar sekarang</a>
         </p>
         <p className="mt-2">
           Juri yang mendapat akun dari panitia: masukkan email dan <strong>kode akses</strong> pada kolom password.

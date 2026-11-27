@@ -8,15 +8,23 @@ import { registerAction, type RegisterState } from "./actions";
 
 const initialState: RegisterState = {};
 
-export function RegisterForm({ role, submitLabel }: { role: "participant" | "jury"; submitLabel: string }) {
+export function RegisterForm({
+  role,
+  submitLabel,
+  next = "/dashboard",
+}: {
+  role: "participant" | "jury";
+  submitLabel: string;
+  next?: string;
+}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(registerAction, initialState);
 
   useEffect(() => {
     if (!state.ok) return;
-    router.replace("/dashboard");
+    router.replace(next);
     router.refresh();
-  }, [state.ok, router]);
+  }, [state.ok, next, router]);
 
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-4">

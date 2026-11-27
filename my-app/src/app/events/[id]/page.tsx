@@ -4,34 +4,22 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { ArrowLeft, Check, FileText, Mail, ShieldAlert } from "lucide-react";
 import { Badge, Card, CardHeader } from "@/components/kit/ui";
-import { fetchPublicEvent, fetchPublicEvents, type PublicEvent } from "@/components/public/api";
+import { resolvePublicEvent, type PublicEvent } from "@/components/public/api";
 import { BannerShowcase } from "@/components/public/banner-showcase";
 import { CtaLink } from "@/components/public/cta-link";
 import { formatDate, formatPrice, limit } from "@/components/public/format";
 import { PublicShell } from "@/components/public/public-shell";
 import { Reveal } from "@/components/public/reveal";
+import { getOptionalViewer } from "@/lib/viewer";
 
 // Data event diambil dari API saat request; jangan diprerender saat build.
 export const instant = false;
 
 type PageProps = { params: Promise<{ id: string }> };
 
-/** Menerima ID numerik maupun slug; fallback ke daftar publik selama route slug belum aktif. */
-async function resolveEvent(idOrSlug: string): Promise<PublicEvent | null> {
-  const direct = await fetchPublicEvent(idOrSlug);
-
-  if (direct) {
-    return direct;
-  }
-
-  const events = await fetchPublicEvents();
-
-  return events.find((event) => event.slug === idOrSlug) ?? null;
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const event = await resolveEvent(id);
+  const event = await resolvePublicEvent(id);
 
   if (!event) {
     return { title: "Event tidak ditemukan — JURI.ON" };
@@ -76,7 +64,7 @@ function domains(event: PublicEvent): string[] {
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const event = await resolveEvent(id);
+  const [event, viewer] = await Promise.all([resolvePublicEvent(id), getOptionalViewer()]);
 
   if (!event) {
     notFound();
@@ -87,9 +75,11 @@ export default async function EventDetailPage({ params }: PageProps) {
       ? Math.round(Math.min(100, Math.max(0, ((event.quota - event.available_slots) / event.quota) * 100)))
       : 100;
   const allowedDomains = domains(event);
+  const registrationPath = `/events/${event.id}/register`;
+  const loginHref = `/login?next=${encodeURIComponent(registrationPath)}`;
 
   return (
-    <PublicShell>
+    <PublicShell viewer={viewer}>
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-12">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <nav className="flex min-w-0 items-center gap-2 text-sm text-slate-500" aria-label="Breadcrumb">
@@ -233,30 +223,55 @@ export default async function EventDetailPage({ params }: PageProps) {
               </Reveal>
             ) : null}
 
-            <Reveal>
-              <Card className="p-6">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" />
-                      <circle cx="9.5" cy="7" r="3" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 19v-1a4 4 0 0 0-3-3.87" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h2 className="text-base font-semibold text-slate-950">Masuk untuk mendaftar</h2>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Anda harus login untuk mendaftar event ini. Belum punya akun? Daftar terlebih dahulu, lalu kembali ke halaman ini.
-                    </p>
+            {event.registration_open ? (
+              <Reveal>
+                <Card className="p-6">
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-100">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" />
+                        <circle cx="9.5" cy="7" r="3" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 19v-1a4 4 0 0 0-3-3.87" />
+                      </svg>
+                    </span>
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">
+                        {viewer
+                          ? viewer.role === "participant"
+                            ? "Lanjutkan pendaftaran"
+                            : `Anda masuk sebagai ${viewer.roleLabel}`
+                          : "Masuk untuk mendaftar"}
+                      </h2>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {viewer
+                          ? viewer.role === "participant"
+                            ? "Isi formulir pendaftaran event ini. Anda dapat memantau status pendaftaran dan pembayaran dari halaman Pendaftaran Saya."
+                            : "Pendaftaran event hanya dapat dilakukan melalui akun peserta. Buka dashboard untuk mengelola akun Anda."
+                          : "Buat akun peserta atau masuk terlebih dahulu. Setelah itu Anda akan diarahkan kembali ke formulir pendaftaran event ini."}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <CtaLink href="/login" size="md">Login</CtaLink>
-                  <CtaLink href={`/events/${event.id}/register`} variant="primary" size="md">Daftar Sekarang</CtaLink>
-                </div>
-              </Card>
-            </Reveal>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    {viewer ? (
+                      viewer.role === "participant" ? (
+                        <>
+                          <CtaLink href={registrationPath} variant="primary" size="md">Isi Formulir Pendaftaran</CtaLink>
+                          <CtaLink href="/my-registrations" variant="secondary" size="md">Pendaftaran Saya</CtaLink>
+                        </>
+                      ) : (
+                        <CtaLink href="/dashboard" size="md">Buka Dashboard</CtaLink>
+                      )
+                    ) : (
+                      <>
+                        <CtaLink href={registrationPath} variant="primary" size="md">Daftar Sekarang</CtaLink>
+                        <CtaLink href={loginHref} variant="secondary" size="md">Masuk</CtaLink>
+                      </>
+                    )}
+                  </div>
+                </Card>
+              </Reveal>
+            ) : null}
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-24">

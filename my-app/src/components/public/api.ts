@@ -80,3 +80,16 @@ export async function fetchPublicEvent(idOrSlug: string): Promise<PublicEvent | 
 
   return data.event;
 }
+
+/** Terima ID numerik maupun slug; fallback ke daftar publik untuk link lama. */
+export async function resolvePublicEvent(idOrSlug: string): Promise<PublicEvent | null> {
+  const direct = await fetchPublicEvent(idOrSlug);
+
+  if (direct) {
+    return direct;
+  }
+
+  const events = await fetchPublicEvents();
+
+  return events.find((event) => event.slug === idOrSlug) ?? null;
+}

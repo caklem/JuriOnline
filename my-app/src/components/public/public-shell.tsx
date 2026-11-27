@@ -1,11 +1,12 @@
 import { CURRENT_YEAR } from "@/lib/year";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import type { OptionalViewer } from "@/lib/viewer";
 import { SiteHeader } from "./site-header";
 import { BrandLockup } from "@/components/brand/lockup";
 import { Reveal, ScrollProgress } from "./reveal";
 
-export function SiteFooter() {
+export function SiteFooter({ viewer = null }: { viewer?: OptionalViewer | null }) {
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-slate-950 text-slate-300">
       <div aria-hidden="true" className="jurion-dotgrid pointer-events-none absolute inset-0 opacity-25" />
@@ -45,8 +46,17 @@ export function SiteFooter() {
           <div>
             <h2 className="text-sm font-semibold text-white">Akun</h2>
             <ul className="mt-4 space-y-3 text-sm">
-              <li><Link href="/login" className="transition hover:text-white">Masuk</Link></li>
-              <li><Link href="/register" className="transition hover:text-white">Daftar gratis</Link></li>
+              {viewer ? (
+                <>
+                  <li><Link href="/dashboard" className="transition hover:text-white">Dashboard</Link></li>
+                  <li><Link href="/profile" className="transition hover:text-white">Profil</Link></li>
+                </>
+              ) : (
+                <>
+                  <li><Link href="/login" className="transition hover:text-white">Masuk</Link></li>
+                  <li><Link href="/register" className="transition hover:text-white">Daftar gratis</Link></li>
+                </>
+              )}
             </ul>
           </div>
         </div>
@@ -63,13 +73,19 @@ export function SiteFooter() {
   );
 }
 
-export function PublicShell({ children }: { children: ReactNode }) {
+export function PublicShell({
+  children,
+  viewer = null,
+}: {
+  children: ReactNode;
+  viewer?: OptionalViewer | null;
+}) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <ScrollProgress />
-      <SiteHeader />
+      <SiteHeader viewer={viewer} />
       <main className="flex-1">{children}</main>
-      <SiteFooter />
+      <SiteFooter viewer={viewer} />
     </div>
   );
 }

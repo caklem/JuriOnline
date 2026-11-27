@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { BrandLockup } from "@/components/brand/lockup";
+import { safeNextPath } from "@/lib/next-path";
 import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Masuk — JURI.ON" };
@@ -8,9 +9,16 @@ export const metadata = { title: "Masuk — JURI.ON" };
 // Halaman bergantung pada cookie sesi; jangan diprerender saat build.
 export const instant = false;
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ next?: string | string[] }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { next: nextParam } = await searchParams;
+  const next = safeNextPath(nextParam);
+
   if ((await cookies()).get("jl_token")) {
-    redirect("/dashboard");
+    redirect(next);
   }
 
   return (
@@ -38,7 +46,7 @@ export default async function LoginPage() {
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
             Selamat datang kembali! Silakan masuk ke akun Anda
           </p>
-          <LoginForm />
+          <LoginForm next={next} />
         </div>
       </section>
     </main>
