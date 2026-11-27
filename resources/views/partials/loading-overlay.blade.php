@@ -1,29 +1,14 @@
 @php
     $autoShow = $autoShow ?? false;
 
-    // Ganti logo cukup dengan menimpa file di public/images/logo-loading.*
-    // Urutan prioritas: PNG/WEBP/JPG dulu, lalu SVG placeholder.
-    $logoSrc = null;
-    foreach (['png', 'webp', 'jpg', 'jpeg', 'svg'] as $extension) {
-        $relativePath = "images/logo-loading.{$extension}";
-        if (file_exists(public_path($relativePath))) {
-            $logoSrc = asset($relativePath);
-            break;
-        }
-    }
+    // Logo loading mengikuti brand mark JURI.ON.
+    $logoSrc = asset('images/brand/jurion-mark.png');
 @endphp
 
 <div id="loginLoadingOverlay" class="login-loading-overlay" @if(! $autoShow) hidden @endif role="status" aria-live="polite" aria-busy="true">
     <div class="login-loading-card">
         <div class="login-loading-logo">
-            @if($logoSrc)
-            <img src="{{ $logoSrc }}" alt="" class="login-loading-spinner login-loading-logo-img" width="48" height="48">
-            @else
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="login-loading-spinner" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-            </svg>
-            @endif
+            <img src="{{ $logoSrc }}" alt="" class="login-loading-logo-img" width="48" height="48">
         </div>
         <p class="login-loading-text">Memuat dashboard…</p>
     </div>

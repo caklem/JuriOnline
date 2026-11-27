@@ -84,6 +84,7 @@ class RegistrationController extends Controller
             $lockedEvent = Event::whereKey($event->id)->lockForUpdate()->firstOrFail();
 
             if ($lockedEvent->status !== 'active'
+                || $lockedEvent->archived_at !== null
                 || $lockedEvent->registered_count >= $lockedEvent->quota) {
                 DB::rollBack();
 

@@ -313,12 +313,8 @@ class JuryScoreController extends Controller
         $user = auth()->user();
         $event = $juryScore->registration->event;
 
-        if ($juryScore->jury_id === $user->id) {
-            if (!$user->hasAcceptedAssignmentFor($event)) {
-                abort(403, 'Unauthorized action.');
-            }
-        } elseif (!$user->canManageEvent($event)) {
-            abort(403, 'Unauthorized action.');
+        if ($juryScore->jury_id !== $user->id || !$user->hasAcceptedAssignmentFor($event)) {
+            abort(403, 'Hanya juri pemilik penilaian yang boleh mengubah skor.');
         }
 
         if (!$event->isScoringOpen()) {
@@ -335,12 +331,8 @@ class JuryScoreController extends Controller
         $user = auth()->user();
         $event = $juryScore->registration->event;
 
-        if ($juryScore->jury_id === $user->id) {
-            if (!$user->hasAcceptedAssignmentFor($event)) {
-                abort(403, 'Unauthorized action.');
-            }
-        } elseif (!$user->canManageEvent($event)) {
-            abort(403, 'Unauthorized action.');
+        if ($juryScore->jury_id !== $user->id || !$user->hasAcceptedAssignmentFor($event)) {
+            abort(403, 'Hanya juri pemilik penilaian yang boleh mengubah skor.');
         }
 
         if (!$event->isScoringOpen()) {

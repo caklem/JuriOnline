@@ -10,6 +10,8 @@ class Registration extends Model
     use HasFactory;
 
     protected $fillable = [
+        'team_name',
+        'team_members',
         'event_id',
         'user_id',
         'registration_number',
@@ -19,6 +21,7 @@ class Registration extends Model
     ];
 
     protected $casts = [
+        'team_members' => 'array',
         'registered_at' => 'datetime',
     ];
 
@@ -40,6 +43,11 @@ class Registration extends Model
     public function juryScores()
     {
         return $this->hasMany(JuryScore::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(RegistrationFile::class);
     }
 
     public function response()

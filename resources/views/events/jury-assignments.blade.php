@@ -938,7 +938,7 @@
 
         if (selectedOption.value) {
             const fields = JSON.parse(selectedOption.getAttribute('data-fields'));
-            previewList.innerHTML = '';
+            previewList.replaceChildren();
             fields.forEach(field => {
                 const li = document.createElement('li');
                 li.innerHTML = `<strong>${field.label}</strong> ${field.type === 'score' ? `(Max: ${field.max} poin)` : ''}`;

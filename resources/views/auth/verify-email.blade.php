@@ -1,6 +1,6 @@
 @php
     $authTitle = 'Verifikasi Email';
-    $authSubtitle = 'Satu langkah lagi sebelum Anda mulai menggunakan JuriOnline.';
+    $authSubtitle = 'Satu langkah lagi sebelum Anda mulai menggunakan JURI.ON.';
 @endphp
 
 <x-guest-layout :authTitle="$authTitle" :authSubtitle="$authSubtitle">

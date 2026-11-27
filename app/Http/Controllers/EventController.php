@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Services\EventQuotaService;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -51,14 +52,20 @@ class EventController extends Controller
             'banner' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], $this->dateValidationMessages());
 
-        $validated['organizer_id'] = auth()->id();
         $validated['status'] = 'draft';
 
         if ($request->hasFile('banner')) {
             $validated['banner'] = $request->file('banner')->store('banners', 'public');
         }
 
-        $event = Event::create($validated);
+        try {
+            $event = app(EventQuotaService::class)->create(auth()->user(), $validated);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            if (isset($validated['banner'])) {
+                Storage::disk('public')->delete($validated['banner']);
+            }
+            throw $exception;
+        }
 
         return redirect()->route('events.show', $event)
             ->with('success', 'Event berhasil dibuat!');
@@ -210,7 +217,7 @@ class EventController extends Controller
     {
         // If user is authenticated, show events page
         if (auth()->check()) {
-            $events = Event::where('status', 'active')
+            $events = Event::where('status', 'active')->whereNull('archived_at')
                 ->with(['organizer', 'category'])
                 ->latest()
                 ->paginate(12);
@@ -224,7 +231,7 @@ class EventController extends Controller
 
     public function publicShow(Event $event)
     {
-        if ($event->status !== 'active') {
+        if ($event->status !== 'active' || $event->archived_at !== null) {
             abort(404);
         }
 

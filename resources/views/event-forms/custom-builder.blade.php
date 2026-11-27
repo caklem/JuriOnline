@@ -377,7 +377,7 @@
                 // Clear existing fields and load template
                 const container = document.getElementById('fieldsContainer');
                 if (container && fields.length > 0) {
-                    container.innerHTML = '';
+                    container.replaceChildren();
                     fieldIndex = 0;
                     
                     fields.forEach((field) => {

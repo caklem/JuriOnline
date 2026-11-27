@@ -74,74 +74,69 @@
 </div>
 @endif
 
-<!-- Verify Modal -->
-<div id="verifyModal" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/60 p-4">
-    <div class="flex min-h-full items-center justify-center">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
-            <h3 class="text-base font-semibold text-slate-900">Verifikasi Pembayaran</h3>
-            <p class="mt-1 text-sm text-slate-500">Verifikasi pembayaran dari <strong id="verifyUserName" class="font-semibold text-slate-900"></strong>?</p>
+{{-- Modal native <dialog>: fokus terkunci, Esc, dan ::backdrop ditangani browser. --}}
+<dialog id="verifyModal" aria-labelledby="verifyModalTitle" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
+    <h2 id="verifyModalTitle" class="text-base font-semibold text-slate-900">Verifikasi Pembayaran</h2>
+    <p class="mt-1 text-sm text-slate-500">Verifikasi pembayaran dari <strong id="verifyUserName" class="font-semibold text-slate-900"></strong>?</p>
 
-            <form method="POST" id="verifyForm" class="mt-5">
-                @csrf
-                <input type="hidden" name="status" value="verified">
+    <form method="POST" id="verifyForm" class="mt-5">
+        @csrf
+        <input type="hidden" name="status" value="verified">
 
-                <div class="form-group">
-                    <label class="form-label">Catatan (opsional)</label>
-                    <textarea name="verification_notes" class="form-control" rows="3"></textarea>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <button type="submit" class="btn btn-success">Verifikasi</button>
-                    <button type="button" onclick="closeModals()" class="btn btn-cancel">Batal</button>
-                </div>
-            </form>
+        <div class="form-group">
+            <label class="form-label" for="verifyNotes">Catatan (opsional)</label>
+            <textarea name="verification_notes" id="verifyNotes" class="form-control" rows="3"></textarea>
         </div>
-    </div>
-</div>
 
-<!-- Reject Modal -->
-<div id="rejectModal" style="display: none;" class="fixed inset-0 z-50 bg-slate-950/60 p-4">
-    <div class="flex min-h-full items-center justify-center">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
-            <h3 class="text-base font-semibold text-slate-900">Tolak Pembayaran</h3>
-            <p class="mt-1 text-sm text-slate-500">Tolak pembayaran dari <strong id="rejectUserName" class="font-semibold text-slate-900"></strong>?</p>
-
-            <form method="POST" id="rejectForm" class="mt-5">
-                @csrf
-                <input type="hidden" name="status" value="rejected">
-
-                <div class="form-group">
-                    <label class="form-label">Alasan Penolakan *</label>
-                    <textarea name="verification_notes" class="form-control" rows="3" required></textarea>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <button type="submit" class="btn btn-danger">Tolak</button>
-                    <button type="button" onclick="closeModals()" class="btn btn-cancel">Batal</button>
-                </div>
-            </form>
+        <div class="flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-success" autofocus>Verifikasi</button>
+            <button type="button" class="btn btn-cancel" command="close" commandfor="verifyModal">Batal</button>
         </div>
-    </div>
-</div>
+    </form>
+</dialog>
+
+<dialog id="rejectModal" aria-labelledby="rejectModalTitle" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-slate-200">
+    <h2 id="rejectModalTitle" class="text-base font-semibold text-slate-900">Tolak Pembayaran</h2>
+    <p class="mt-1 text-sm text-slate-500">Tolak pembayaran dari <strong id="rejectUserName" class="font-semibold text-slate-900"></strong>?</p>
+
+    <form method="POST" id="rejectForm" class="mt-5">
+        @csrf
+        <input type="hidden" name="status" value="rejected">
+
+        <div class="form-group">
+            <label class="form-label" for="rejectNotes">Alasan Penolakan *</label>
+            <textarea name="verification_notes" id="rejectNotes" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-danger">Tolak</button>
+            {{-- Aksi aman mendapat fokus awal pada konfirmasi destruktif. --}}
+            <button type="button" class="btn btn-cancel" command="close" commandfor="rejectModal" autofocus>Batal</button>
+        </div>
+    </form>
+</dialog>
 
 @push('scripts')
 <script>
+    const verifyDialog = document.getElementById('verifyModal');
+    const rejectDialog = document.getElementById('rejectModal');
+
     function showVerifyModal(paymentId, userName) {
         document.getElementById('verifyUserName').textContent = userName;
         document.getElementById('verifyForm').action = '/payments/' + paymentId + '/verify';
-        document.getElementById('verifyModal').style.display = 'block';
+        verifyDialog.showModal();
     }
 
     function showRejectModal(paymentId, userName) {
         document.getElementById('rejectUserName').textContent = userName;
         document.getElementById('rejectForm').action = '/payments/' + paymentId + '/verify';
-        document.getElementById('rejectModal').style.display = 'block';
+        rejectDialog.showModal();
     }
 
-    function closeModals() {
-        document.getElementById('verifyModal').style.display = 'none';
-        document.getElementById('rejectModal').style.display = 'none';
-    }
+    // Jangan bawa catatan pembayaran sebelumnya ke pembayaran lain.
+    [verifyDialog, rejectDialog].forEach((dialog) => {
+        dialog?.addEventListener('close', () => dialog.querySelector('form')?.reset());
+    });
 </script>
 @endpush
 @endsection

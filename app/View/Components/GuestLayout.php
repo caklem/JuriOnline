@@ -8,7 +8,7 @@ use Illuminate\View\View;
 class GuestLayout extends Component
 {
     public function __construct(
-        public string $authTitle = 'Akun JuriOnline',
+        public string $authTitle = 'Akun JURI.ON',
         public string $authSubtitle = 'Kelola akses akun Anda dengan aman.',
     ) {
     }

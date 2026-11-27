@@ -1,6 +1,6 @@
 /* ============================================
-   JuriOnline Design System
-   Selaras dengan landing page: slate + indigo
+   JURI.ON Design System
+   Token legacy dipetakan ke palet brand di css/brand.css
    ============================================ */
 
 :root {
@@ -1018,8 +1018,7 @@ table td {
 
 /* ============================================
    Login loading overlay
-   Logo berputar saat proses masuk ke dashboard.
-   Ganti logo: timpa public/images/logo-loading.png (atau .svg / .webp).
+   Logo brand statis; hanya overlay yang fade.
    ============================================ */
 
 .login-loading-overlay {
@@ -1063,19 +1062,10 @@ table td {
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
 }
 
-.login-loading-spinner {
-    animation: login-logo-spin 1.1s linear infinite;
-}
-
 .login-loading-logo-img {
     width: 3rem;
     height: 3rem;
     object-fit: contain;
-}
-
-.login-loading-logo svg {
-    width: 2.5rem;
-    height: 2.5rem;
 }
 
 .login-loading-text {
@@ -1086,8 +1076,79 @@ table td {
     color: #475569;
 }
 
-@keyframes login-logo-spin {
-    to {
-        transform: rotate(360deg);
+/* ============================================
+   Native dialog, form validity, and scrollbar
+   ============================================ */
+
+/* Dialog modal native: browser yang mengatur posisi, fokus, Esc, dan top layer. */
+dialog {
+    margin: auto;
+    border: 0;
+    padding: 0;
+    max-width: min(28rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+}
+
+dialog::backdrop {
+    background: rgb(2 6 23 / 0.6);
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+
+/* Cegah gestur scroll di dalam dialog meneruskan scroll ke halaman di belakangnya. */
+dialog:modal {
+    overscroll-behavior: contain;
+}
+
+/* Validasi form: warna error hanya muncul setelah pengguna berinteraksi. */
+.field-error {
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #be123c;
+}
+
+input:user-invalid,
+textarea:user-invalid,
+select:user-invalid,
+.form-control:user-invalid,
+.form-control:user-invalid:focus {
+    border-color: #e11d48;
+    background-color: #fff1f2;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
+}
+
+input:user-invalid + .field-error,
+textarea:user-invalid + .field-error,
+select:user-invalid + .field-error {
+    display: block;
+}
+
+/* Scrollbar tipis berwarna untuk panel panjang (mis. daftar notifikasi). */
+.scrollbar-brand {
+    --scrollbar-thumb: #64748b;
+    --scrollbar-track: #f1f5f9;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+}
+
+@supports not (scrollbar-color: auto) {
+    .scrollbar-brand {
+        scrollbar-width: auto;
+    }
+
+    .scrollbar-brand::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    .scrollbar-brand::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+    }
+
+    .scrollbar-brand::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
     }
 }

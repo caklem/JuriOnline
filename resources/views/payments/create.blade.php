@@ -52,15 +52,15 @@
             <ul class="mt-3 space-y-2">
                 <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm ring-1 ring-inset ring-amber-200">
                     <span class="font-semibold text-amber-900">BCA</span>
-                    <span class="font-mono text-slate-800">1234567890 <span class="font-sans text-amber-800">a/n JuriOnline</span></span>
+                    <span class="font-mono text-slate-800">1234567890 <span class="font-sans text-amber-800">a/n JURI.ON</span></span>
                 </li>
                 <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm ring-1 ring-inset ring-amber-200">
                     <span class="font-semibold text-amber-900">Mandiri</span>
-                    <span class="font-mono text-slate-800">0987654321 <span class="font-sans text-amber-800">a/n JuriOnline</span></span>
+                    <span class="font-mono text-slate-800">0987654321 <span class="font-sans text-amber-800">a/n JURI.ON</span></span>
                 </li>
                 <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm ring-1 ring-inset ring-amber-200">
                     <span class="font-semibold text-amber-900">BNI</span>
-                    <span class="font-mono text-slate-800">1122334455 <span class="font-sans text-amber-800">a/n JuriOnline</span></span>
+                    <span class="font-mono text-slate-800">1122334455 <span class="font-sans text-amber-800">a/n JURI.ON</span></span>
                 </li>
             </ul>
             <p class="mt-4 text-sm font-medium text-amber-900">Upload bukti transfer Anda pada formulir di samping.</p>

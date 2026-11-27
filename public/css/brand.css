@@ -1,0 +1,162 @@
+/* ============================================
+   JURI.ON Brand System
+   Source of truth: PRD_JURI_ON_Brand_Identity v1.0
+   Loaded after premium-global.css so these tokens win.
+   ============================================ */
+
+:root {
+    /* Brand tokens (PRD §10) */
+    --brand-navy: #0b1f46;
+    --brand-cobalt: #2f80ff;
+    --brand-cobalt-strong: #1e6be6;
+    --brand-cobalt-deep: #1552b8;
+    --brand-light-blue: #e8f2ff;
+    --brand-white: #ffffff;
+    --brand-slate: #667085;
+    --brand-border: #dce4ef;
+    --brand-surface: #f7faff;
+
+    --brand-font-display: 'Montserrat', 'Figtree', Arial, sans-serif;
+    --brand-font-ui: 'Inter', 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
+    --brand-shadow: 0 6px 24px rgba(11, 31, 70, 0.08);
+    --brand-shadow-soft: 0 1px 2px rgba(11, 31, 70, 0.04);
+    --brand-focus: 0 0 0 3px rgba(47, 128, 255, 0.35);
+    --brand-radius-card: 0.875rem;
+    --brand-radius-panel: 1.5rem;
+
+    /* Map legacy design tokens onto the brand palette */
+    --primary-color: var(--brand-cobalt-strong);
+    --primary-hover: var(--brand-cobalt-deep);
+    --primary-active: #0e3e88;
+    --primary-soft: var(--brand-light-blue);
+    --dark: var(--brand-navy);
+    --dark-light: #16305e;
+    --gray: var(--brand-slate);
+    --gray-light: var(--brand-border);
+    --background: var(--brand-surface);
+    --shadow-sm: var(--brand-shadow-soft);
+    --shadow-md: var(--brand-shadow);
+}
+
+/* Typography (PRD §10.2) */
+body,
+.font-sans {
+    font-family: var(--brand-font-ui);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-display {
+    font-family: var(--brand-font-display);
+}
+
+/* Logo lockup */
+.jurion-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.jurion-logo__mark {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    object-fit: contain;
+    display: block;
+}
+
+.jurion-logo--sm .jurion-logo__mark {
+    width: 2rem;
+    height: 2rem;
+}
+
+.jurion-logo--lg .jurion-logo__mark {
+    width: 3.25rem;
+    height: 3.25rem;
+}
+
+.jurion-logo--tile .jurion-logo__mark {
+    background: var(--brand-white);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+    box-shadow: 0 8px 18px rgba(4, 16, 40, 0.18);
+}
+
+.jurion-logo--lg.jurion-logo--tile .jurion-logo__mark {
+    border-radius: 1rem;
+    padding: 0.35rem;
+}
+
+.jurion-logo__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.jurion-wordmark {
+    font-family: var(--brand-font-display);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    line-height: 1;
+    letter-spacing: 0.045em;
+    color: var(--brand-navy);
+    white-space: nowrap;
+}
+
+.jurion-dot {
+    color: var(--brand-cobalt);
+}
+
+.jurion-descriptor {
+    font-family: var(--brand-font-ui);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--brand-slate);
+}
+
+.jurion-logo--dark .jurion-wordmark {
+    color: var(--brand-white);
+}
+
+.jurion-logo--dark .jurion-descriptor {
+    color: rgba(255, 255, 255, 0.62);
+}
+
+a.jurion-logo:hover .jurion-wordmark {
+    color: inherit;
+}
+
+/* Global legacy `a` colour is the cobalt link token; on dark chrome the
+   surrounding text colour must win (PRD BR-011/AA contrast). */
+footer a {
+    color: inherit;
+}
+
+/* Decorative identity pattern (PRD §10.4) — never place behind dense text */
+.brand-pattern {
+    background-image: url('../images/brand/pattern.svg');
+    background-repeat: repeat;
+    background-size: 480px 480px;
+}
+
+/* Accessible focus (PRD BR-009) */
+:where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+    outline: 2px solid var(--brand-cobalt);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jurion-logo,
+    .jurion-logo__mark {
+        transition: none !important;
+    }
+}

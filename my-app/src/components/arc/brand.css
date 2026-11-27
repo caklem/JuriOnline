@@ -1,0 +1,214 @@
+/* JURI.ON brand layer — loaded after the Arc foundation.
+   Source of truth: PRD_JURI_ON_Brand_Identity v1.0 */
+
+:root {
+  --brand-navy: #0b1f46;
+  --brand-cobalt: #2f80ff;
+  --brand-cobalt-strong: #1e6be6;
+  --brand-cobalt-deep: #1552b8;
+  --brand-light-blue: #e8f2ff;
+  --brand-border: #dce4ef;
+  --brand-surface: #f7faff;
+
+  /* Arc reads Geist for display text and Geist for UI; map both to the PRD fonts. */
+  --font-geist: var(--font-montserrat);
+  --font-geist-sans: var(--font-inter);
+  --font-display: var(--font-montserrat), "Montserrat", sans-serif;
+  --font-body: var(--font-inter), "Inter", sans-serif;
+
+  /* Tailwind v4 colour variables used by existing indigo-* utilities. */
+  --color-indigo-50: #e8f2ff;
+  --color-indigo-100: #d8e9ff;
+  --color-indigo-200: #bfdbff;
+  --color-indigo-300: #93c3ff;
+  --color-indigo-400: #5c9cff;
+  --color-indigo-500: #2f80ff;
+  --color-indigo-600: #1e6be6;
+  --color-indigo-700: #1552b8;
+  --color-indigo-800: #0e3e88;
+  --color-indigo-900: #0b2a6b;
+  --color-indigo-950: #081a45;
+
+  /* Dark chrome (footer, active underline) uses slate-950 → brand navy. */
+  --color-slate-950: #0b1f46;
+
+  /* Primary actions use navy; cobalt stays an accent. */
+  --primary: var(--brand-navy);
+  --primary-foreground: #ffffff;
+  --ring: var(--brand-cobalt);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/* Brand accent. Primary actions stay navy/cobalt; cobalt text uses the AA-safe
+   #1E6BE6 step on white. */
+:root[data-accent="brand"] {
+  --accent: #1e6be6;
+  --accent-strong: #1552b8;
+  --accent-subtle: rgb(47 128 255 / 0.12);
+  --accent-foreground: #ffffff;
+  --control-on: #1e6be6;
+  --control-thumb-on: #ffffff;
+  --control-glyph: #ffffff;
+}
+
+:root[data-theme="dark"][data-accent="brand"] {
+  --accent: #5c9cff;
+  --accent-strong: #93c3ff;
+  --accent-subtle: rgb(47 128 255 / 0.22);
+  --control-on: #2f80ff;
+  --control-fill: #2f80ff;
+  --control-thumb-on: #ffffff;
+  --control-glyph: #ffffff;
+}
+
+/* Logo lockup */
+.jurion-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.jurion-lockup__mark {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.jurion-lockup--tile .jurion-lockup__mark {
+  background: #ffffff;
+  border-radius: 0.6rem;
+  padding: 0.2rem;
+}
+
+.jurion-lockup__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.jurion-wordmark {
+  font-family: var(--font-montserrat), "Montserrat", sans-serif;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1;
+  letter-spacing: 0.045em;
+  color: var(--brand-navy);
+  white-space: nowrap;
+}
+
+.jurion-dot {
+  color: var(--brand-cobalt);
+}
+
+.jurion-descriptor {
+  font-family: var(--font-inter), "Inter", sans-serif;
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.jurion-lockup--dark .jurion-wordmark {
+  color: #ffffff;
+}
+
+.jurion-lockup--dark .jurion-descriptor {
+  color: rgb(255 255 255 / 0.62);
+}
+
+/* ---------- Public page motion + surfaces ---------- */
+
+.jurion-pattern {
+  background-image: url("/brand/pattern.svg");
+  background-repeat: repeat;
+  background-size: 480px 480px;
+}
+
+.jurion-dotgrid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.jurion-dotgrid-dark {
+  background-image: radial-gradient(rgba(11, 31, 70, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@keyframes jurion-drift {
+  0% { transform: translate3d(-2%, -1%, 0) scale(1); }
+  50% { transform: translate3d(2%, 2%, 0) scale(1.06); }
+  100% { transform: translate3d(-1%, 1%, 0) scale(1.02); }
+}
+
+.jurion-aurora {
+  animation: jurion-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes jurion-bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.jurion-bar {
+  transform-origin: left center;
+  animation: jurion-bar-grow 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes jurion-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(47, 128, 255, 0.35); }
+  50% { box-shadow: 0 0 0 7px rgba(47, 128, 255, 0); }
+}
+
+.jurion-pulse {
+  animation: jurion-pulse 2.4s ease-out infinite;
+}
+
+.cta-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cta-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.18) 45%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cta-sheen:hover::after {
+  transform: translateX(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jurion-aurora,
+  .jurion-bar,
+  .jurion-pulse {
+    animation: none;
+  }
+
+  .cta-sheen::after {
+    display: none;
+  }
+}
+
+/* Native dialog for full-size event banners. */
+.banner-dialog {
+  border: 0;
+}
+
+.banner-dialog::backdrop {
+  background: rgba(11, 31, 70, 0.92);
+  backdrop-filter: blur(6px);
+}

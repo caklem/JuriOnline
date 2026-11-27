@@ -660,7 +660,7 @@
             alert('Form builder tidak ditemukan.');
             return;
         }
-        container.innerHTML = '';
+        container.replaceChildren();
         criteriaIndex = 0;
 
         // Set auto-calculate checkbox
@@ -803,7 +803,7 @@
         // Reset/clear the criteria builder
         const criteriaContainer = document.getElementById('criteriaContainer');
         if (criteriaContainer) {
-            criteriaContainer.innerHTML = ''; // Clear all criteria
+            criteriaContainer.replaceChildren(); // Clear all criteria
             criteriaIndex = 0; // Reset criteria index
         }
 
@@ -984,7 +984,7 @@
         // Clear existing criteria
         const criteriaContainer = document.getElementById('criteriaContainer');
         if (criteriaContainer) {
-            criteriaContainer.innerHTML = '';
+            criteriaContainer.replaceChildren();
         }
 
         // Reset criteria index

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tentang JuriOnline')
+@section('title', 'Tentang JURI.ON')
 
 @section('content')
 @php
@@ -72,17 +72,17 @@ $advantages = [
 @endphp
 
 <div class="page-header-premium">
-    <h1>Tentang JuriOnline</h1>
+    <h1>Tentang JURI.ON</h1>
     <p>Platform Penilaian Digital untuk Event Kompetisi</p>
 </div>
 
 <div class="premium-card">
     <div class="premium-card-header">
-        <h2 class="premium-card-title">Apa itu JuriOnline?</h2>
+        <h2 class="premium-card-title">Apa itu JURI.ON?</h2>
     </div>
 
     <p class="text-base leading-7 text-slate-600">
-        <strong class="font-semibold text-slate-950">JuriOnline</strong> adalah sistem manajemen event dan penilaian digital yang dirancang untuk memudahkan penyelenggaraan kompetisi, lomba, dan acara penjurian lainnya. Platform ini menyediakan solusi lengkap mulai dari pendaftaran peserta hingga penilaian oleh juri profesional.
+        <strong class="font-semibold text-slate-950">JURI.ON</strong> adalah sistem manajemen event dan penilaian digital yang dirancang untuk memudahkan penyelenggaraan kompetisi, lomba, dan acara penjurian lainnya. Platform ini menyediakan solusi lengkap mulai dari pendaftaran peserta hingga penilaian oleh juri profesional.
     </p>
 
     <h3 class="mt-8 text-xl font-semibold tracking-tight text-slate-950">Fitur Utama</h3>
@@ -103,7 +103,7 @@ $advantages = [
         @endforeach
     </div>
 
-    <h3 class="mt-10 text-xl font-semibold tracking-tight text-slate-950">Siapa yang Dapat Menggunakan JuriOnline?</h3>
+    <h3 class="mt-10 text-xl font-semibold tracking-tight text-slate-950">Siapa yang Dapat Menggunakan JURI.ON?</h3>
 
     <div class="mt-5 grid gap-4 sm:grid-cols-2">
         @foreach($audiences as $audience)
@@ -119,7 +119,7 @@ $advantages = [
         @endforeach
     </div>
 
-    <h3 class="mt-10 text-xl font-semibold tracking-tight text-slate-950">Keunggulan JuriOnline</h3>
+    <h3 class="mt-10 text-xl font-semibold tracking-tight text-slate-950">Keunggulan JURI.ON</h3>
 
     <ul class="mt-5 grid gap-3 sm:grid-cols-2">
         @foreach($advantages as $advantage)
@@ -138,7 +138,7 @@ $advantages = [
 <div class="rounded-2xl border border-indigo-100 bg-indigo-50 p-6 sm:p-8">
     <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div class="max-w-2xl">
-            <h3 class="text-lg font-semibold tracking-tight text-slate-950">Mulai Menggunakan JuriOnline</h3>
+            <h3 class="text-lg font-semibold tracking-tight text-slate-950">Mulai Menggunakan JURI.ON</h3>
             <p class="mt-2 text-sm leading-6 text-slate-600">
                 Daftarkan event Anda sekarang dan rasakan kemudahan mengelola kompetisi dengan sistem digital yang profesional.
             </p>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Company Profile - JuriOnline')
+@section('title', 'Company Profile - JURI.ON')
 
 @section('content')
 @php
@@ -67,16 +67,16 @@ $services = [
 
 <div class="page-header-premium">
     <h1>Company Profile</h1>
-    <p>Tentang JuriOnline - Platform Penilaian Digital Terpercaya</p>
+    <p>Tentang JURI.ON - Platform Penilaian Digital Terpercaya</p>
 </div>
 
 <div class="premium-card">
     <div class="premium-card-header">
-        <h2 class="premium-card-title">Tentang JuriOnline</h2>
+        <h2 class="premium-card-title">Tentang JURI.ON</h2>
     </div>
 
     <p class="text-base leading-7 text-slate-600">
-        <strong class="font-semibold text-slate-950">JuriOnline</strong> adalah platform digital inovatif yang dirancang khusus untuk memudahkan proses penilaian dan manajemen event kompetisi, lomba, dan acara penjurian lainnya. Kami menyediakan solusi terintegrasi untuk mengelola seluruh siklus event, mulai dari pendaftaran peserta hingga penilaian oleh juri profesional.
+        <strong class="font-semibold text-slate-950">JURI.ON</strong> adalah platform digital inovatif yang dirancang khusus untuk memudahkan proses penilaian dan manajemen event kompetisi, lomba, dan acara penjurian lainnya. Kami menyediakan solusi terintegrasi untuk mengelola seluruh siklus event, mulai dari pendaftaran peserta hingga penilaian oleh juri profesional.
     </p>
 
     <div class="mt-8 grid gap-4 lg:grid-cols-2">
@@ -159,7 +159,7 @@ $services = [
         <div class="max-w-2xl">
             <h3 class="text-lg font-semibold tracking-tight text-slate-950">Siap menggelar kompetisi yang lebih rapi?</h3>
             <p class="mt-2 text-sm leading-6 text-slate-600">
-                Bergabung bersama penyelenggara, juri, dan peserta yang menggunakan JuriOnline untuk pengalaman kompetisi yang adil dan transparan.
+                Bergabung bersama penyelenggara, juri, dan peserta yang menggunakan JURI.ON untuk pengalaman kompetisi yang adil dan transparan.
             </p>
         </div>
         <div class="flex flex-col gap-3 sm:flex-row">

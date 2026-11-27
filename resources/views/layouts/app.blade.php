@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'JuriOnline'))</title>
+    <title>@yield('title', config('app.name', 'JURI.ON'))</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|montserrat:600,700,800&display=swap" rel="stylesheet" />
+
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/brand/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/brand/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/brand/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="theme-color" content="#0B1F46">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/premium-global.css') }}?v={{ filemtime(public_path('css/premium-global.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/brand.css') }}?v={{ filemtime(public_path('css/brand.css')) }}">
 
     <style>
         [x-cloak] {
@@ -59,15 +67,7 @@
 
         <aside class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-white/10 bg-slate-950 text-slate-300 transition-transform duration-200 lg:translate-x-0" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
             <div class="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 text-white">
-                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-white/10 ring-1 ring-inset ring-white/10">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-                        </svg>
-                    </span>
-                    <span class="text-base font-semibold tracking-tight">JuriOnline</span>
-                </a>
+                <x-brand.logo :href="route('home')" variant="dark" size="sm" tile />
                 <button type="button" @click="sidebarOpen = false" class="ml-auto grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition hover:bg-white/5 hover:text-white lg:hidden" aria-label="Tutup menu">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" /></svg>
                 </button>
@@ -242,7 +242,7 @@
                     <div class="mt-2 space-y-1">
                         <a href="{{ route('about') }}" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('about') ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                             <span class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('about') ? 'bg-indigo-400' : 'bg-slate-600 group-hover:bg-slate-400' }}"></span>
-                            Tentang JuriOnline
+                            Tentang JURI.ON
                         </a>
                         <a href="{{ route('company-profile') }}" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs('company-profile') ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                             <span class="h-1.5 w-1.5 rounded-full {{ request()->routeIs('company-profile') ? 'bg-indigo-400' : 'bg-slate-600 group-hover:bg-slate-400' }}"></span>
@@ -312,7 +312,7 @@
                                     @endif
                                 </div>
 
-                                <div class="max-h-80 divide-y divide-slate-50 overflow-y-auto">
+                                <div class="scrollbar-brand max-h-80 divide-y divide-slate-50 overflow-y-auto">
                                     @forelse($unreadNotifications as $notification)
                                     <a href="{{ $notification->data['url'] ?? route('dashboard') }}" class="block px-4 py-3 transition hover:bg-slate-50">
                                         <div class="flex items-start gap-2.5">
@@ -393,15 +393,7 @@
     @else
     <header x-data="{ open: false }" class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur">
         <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
-            <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-950 text-white shadow-sm ring-1 ring-inset ring-white/10">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-                    </svg>
-                </span>
-                <span class="text-lg font-semibold tracking-tight text-slate-950">JuriOnline</span>
-            </a>
+            <x-brand.logo :href="route('home')" size="md" />
 
             <nav class="hidden items-center gap-8 md:flex" aria-label="Navigasi utama">
                 <a href="{{ route('home') }}#fitur" class="text-sm font-medium text-slate-600 transition hover:text-slate-950">Fitur</a>
@@ -451,15 +443,7 @@
         <div class="mx-auto max-w-7xl px-6 py-14 lg:px-8">
             <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
                 <div>
-                    <a href="{{ route('home') }}" class="flex items-center gap-3 text-white">
-                        <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/10 ring-1 ring-inset ring-white/10">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-                            </svg>
-                        </span>
-                        <span class="text-lg font-semibold tracking-tight">JuriOnline</span>
-                    </a>
+                    <x-brand.logo :href="route('home')" variant="dark" size="md" tile descriptor />
                     <p class="mt-4 max-w-sm text-sm leading-6 text-slate-400">Platform penilaian digital untuk event kompetisi yang adil, transparan, dan efisien.</p>
                 </div>
 
@@ -491,7 +475,7 @@
             </div>
 
             <div class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                <p>&copy; {{ date('Y') }} JuriOnline. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} JURI.ON. All rights reserved.</p>
                 <p>Dibuat untuk kompetisi yang lebih adil.</p>
             </div>
         </div>

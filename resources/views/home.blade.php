@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'JuriOnline — Platform Penilaian Digital untuk Kompetisi')
+@section('title', 'JURI.ON — Platform Penilaian Digital untuk Kompetisi')
 
 @php
 use Illuminate\Support\Facades\Storage;
@@ -110,7 +110,7 @@ $eventStatus = function ($event) {
                     </h1>
 
                     <p class="mt-6 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
-                        JuriOnline menyatukan pendaftaran peserta, penilaian juri, verifikasi pembayaran, dan rekapitulasi hasil dalam satu alur kerja yang rapi.
+                        JURI.ON menyatukan pendaftaran peserta, penilaian juri, verifikasi pembayaran, dan rekapitulasi hasil dalam satu alur kerja yang rapi.
                     </p>
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -259,7 +259,7 @@ $eventStatus = function ($event) {
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Cara kerja</p>
                     <h2 class="mt-3 max-w-xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Dari pendaftaran hingga pengumuman, dalam satu tempat.</h2>
-                    <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">Tidak perlu menggabungkan spreadsheet, pesan grup, dan rekap manual. JuriOnline menjaga alur kerja tetap terlihat oleh semua pihak yang berwenang.</p>
+                    <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">Tidak perlu menggabungkan spreadsheet, pesan grup, dan rekap manual. JURI.ON menjaga alur kerja tetap terlihat oleh semua pihak yang berwenang.</p>
                     <a href="{{ route('register') }}" class="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 transition hover:text-indigo-500">
                         Mulai sebagai penyelenggara
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" /></svg>
@@ -445,9 +445,9 @@ $eventStatus = function ($event) {
         <div class="mx-auto max-w-7xl px-6 lg:px-8">
             <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Tentang JuriOnline</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Tentang JURI.ON</p>
                     <h2 class="mt-3 max-w-xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Dibangun untuk penyelenggara, juri, dan peserta.</h2>
-                    <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">Kami percaya penilaian yang baik dimulai dari proses yang jelas. JuriOnline membantu tim menyimpan data di satu tempat, mengurangi rekap manual, dan membuat hasil kompetisi lebih mudah dipertanggungjawabkan.</p>
+                    <p class="mt-4 max-w-xl text-base leading-7 text-slate-600">Kami percaya penilaian yang baik dimulai dari proses yang jelas. JURI.ON membantu tim menyimpan data di satu tempat, mengurangi rekap manual, dan membuat hasil kompetisi lebih mudah dipertanggungjawabkan.</p>
                     <a href="{{ route('about') }}" class="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 transition hover:text-indigo-500">
                         Pelajari lebih lanjut
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-5-5 5 5-5 5" /></svg>
@@ -476,7 +476,7 @@ $eventStatus = function ($event) {
                 <div class="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl"></div>
                 <div class="relative max-w-2xl">
                     <h2 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Siap menjalankan event yang lebih rapi?</h2>
-                    <p class="mt-4 text-base leading-7 text-slate-300">Buat akun, siapkan event, dan mulai penilaian digital bersama JuriOnline.</p>
+                    <p class="mt-4 text-base leading-7 text-slate-300">Buat akun, siapkan event, dan mulai penilaian digital bersama JURI.ON.</p>
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-slate-100">Mulai sekarang</a>
                         <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">Masuk ke akun</a>

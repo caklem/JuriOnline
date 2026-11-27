@@ -1,6 +1,6 @@
 @php
     $authTitle = 'Buat Akun Baru';
-    $authSubtitle = 'Daftar untuk mulai menggunakan JuriOnline';
+    $authSubtitle = 'Daftar untuk mulai menggunakan JURI.ON';
 @endphp
 
 <x-guest-layout :authTitle="$authTitle" :authSubtitle="$authSubtitle">

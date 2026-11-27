@@ -119,8 +119,12 @@
                         @endif
                     </label>
                     @if(isset($field['description']) && $field['description'])
-                    <p class="mb-2 mt-1 text-sm text-slate-500">{{ $field['description'] }}</p>
+                    <p id="criteria_{{ $index }}_hint" class="mb-2 mt-1 text-sm text-slate-500">{{ $field['description'] }}</p>
                     @endif
+
+                    @php
+                    $describedBy = (!empty($field['description']) ? "criteria_{$index}_hint" : '');
+                    @endphp
 
                     @if($field['type'] === 'score')
                     <input
@@ -132,6 +136,9 @@
                         max="{{ $field['max'] }}"
                         step="0.5"
                         value="{{ old('criteria_'.$index, $existingValue) }}"
+                        @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
+                        aria-invalid="false"
+                        data-error="criteria_{{ $index }}_error"
                         {{ $field['required'] ? 'required' : '' }}>
                     @elseif($field['type'] === 'textarea')
                     <textarea
@@ -139,6 +146,9 @@
                         id="criteria_{{ $index }}"
                         name="criteria_{{ $index }}"
                         rows="3"
+                        @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
+                        aria-invalid="false"
+                        data-error="criteria_{{ $index }}_error"
                         {{ $field['required'] ? 'required' : '' }}>{{ old('criteria_'.$index, $existingValue) }}</textarea>
                     @else
                     <input
@@ -147,7 +157,20 @@
                         id="criteria_{{ $index }}"
                         name="criteria_{{ $index }}"
                         value="{{ old('criteria_'.$index, $existingValue) }}"
+                        @if($describedBy) aria-describedby="{{ $describedBy }}" @endif
+                        aria-invalid="false"
+                        data-error="criteria_{{ $index }}_error"
                         {{ $field['required'] ? 'required' : '' }}>
+                    @endif
+
+                    @if(!empty($field['required']))
+                    <p id="criteria_{{ $index }}_error" class="field-error">
+                        @if($field['type'] === 'score')
+                        Isi nilai antara 0 dan {{ $field['max'] }}.
+                        @else
+                        {{ $field['label'] }} wajib diisi.
+                        @endif
+                    </p>
                     @endif
                 </div>
                 @endforeach
@@ -235,6 +258,27 @@
 
         inputs.forEach((el) => el.addEventListener('input', update));
         update();
+    })();
+
+    // :user-invalid mengatur tampilan; aria-invalid dan aria-describedby
+    // disinkronkan agar pembaca layar hanya membaca pesan error saat benar-benar invalid.
+    (function () {
+        document.querySelectorAll('[data-error]').forEach((control) => {
+            const errorId = control.dataset.error;
+            const hintIds = (control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+
+            const sync = (invalid) => {
+                control.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+                const ids = invalid ? [...hintIds, errorId] : hintIds;
+                if (ids.length > 0) control.setAttribute('aria-describedby', ids.join(' '));
+                else control.removeAttribute('aria-describedby');
+            };
+
+            control.addEventListener('invalid', () => sync(true));
+            ['input', 'change', 'blur'].forEach((type) => {
+                control.addEventListener(type, () => sync(control.matches(':user-invalid')));
+            });
+        });
     })();
 </script>
 @endpush

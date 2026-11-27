@@ -1,0 +1,60 @@
+{
+  "$description": "JURI.ON design tokens — PRD_JURI_ON_Brand_Identity v1.0",
+  "brand": {
+    "name": "JURI.ON",
+    "descriptor": "Juri Online",
+    "mark": "custom abstract J monogram",
+    "signature": "cobalt dot after JURI"
+  },
+  "color": {
+    "navy": "#0B1F46",
+    "cobalt": "#2F80FF",
+    "cobaltStrong": "#1E6BE6",
+    "cobaltDeep": "#1552B8",
+    "lightBlue": "#E8F2FF",
+    "white": "#FFFFFF",
+    "slate": "#667085",
+    "border": "#DCE4EF",
+    "surface": "#F7FAFF"
+  },
+  "typography": {
+    "display": {
+      "family": "Montserrat",
+      "fallback": ["Figtree", "Arial", "sans-serif"],
+      "weights": [600, 700, 800],
+      "usage": "headings, wordmark"
+    },
+    "ui": {
+      "family": "Inter",
+      "fallback": ["Figtree", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"],
+      "weights": [400, 500, 600, 700],
+      "usage": "body, controls, navigation"
+    }
+  },
+  "spacing": {
+    "base": 4,
+    "rhythm": 8,
+    "steps": [8, 12, 16, 24, 32, 40, 48]
+  },
+  "radius": {
+    "card": "12-16px",
+    "panel": "24px",
+    "control": "10px"
+  },
+  "sizing": {
+    "controlMinHeight": 44
+  },
+  "shadow": {
+    "resting": "0 6px 24px rgba(11,31,70,0.08)",
+    "soft": "0 1px 2px rgba(11,31,70,0.04)"
+  },
+  "focus": {
+    "outline": "2px solid #2F80FF",
+    "offset": "2px",
+    "halo": "0 0 0 3px rgba(47,128,255,0.35)"
+  },
+  "pattern": {
+    "prominence": "5-12%",
+    "usage": "decorative large surfaces only, never behind dense text or form fields"
+  }
+}

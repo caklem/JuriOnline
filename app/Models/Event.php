@@ -10,11 +10,45 @@ class Event extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::creating(function (Event $event) {
+            if (empty($event->slug)) {
+                $event->slug = static::uniqueSlug($event->name);
+            }
+        });
+    }
+
+    public static function uniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $base = \Illuminate\Support\Str::slug($name) ?: 'event';
+        $slug = $base;
+        $suffix = 1;
+
+        while (static::query()
+            ->where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+            ->exists()) {
+            $slug = $base . '-' . (++$suffix);
+        }
+
+        return $slug;
+    }
+
     protected $fillable = [
         'organizer_id',
         'category_id',
         'name',
+        'slug',
         'description',
+        'format',
+        'participation_mode',
+        'team_min_members',
+        'team_max_members',
+        'timezone',
+        'contact_name',
+        'contact_email',
+        'contact_phone',
         'price',
         'quota',
         'registered_count',
@@ -25,8 +59,12 @@ class Event extends Model
         'event_start',
         'event_end',
         'status',
+        'archived_at',
+        'evaluations_published_at',
         'location',
         'banner',
+        'juknis_file',
+        'juknis_name',
         'require_official_email',
         'allowed_email_domains',
     ];
@@ -39,6 +77,10 @@ class Event extends Model
         'scoring_enabled' => 'boolean',
         'event_start' => 'date',
         'event_end' => 'date',
+        'archived_at' => 'datetime',
+        'team_min_members' => 'integer',
+        'team_max_members' => 'integer',
+        'evaluations_published_at' => 'datetime',
     ];
 
     public function organizer()
@@ -49,6 +91,16 @@ class Event extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function chatSetting()
+    {
+        return $this->hasOne(EventChatSetting::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(EventMessage::class);
     }
 
     public function registrations()
@@ -88,7 +140,8 @@ class Event extends Model
     public function isRegistrationOpen()
     {
         $now = Carbon::now();
-        return $this->status === 'active'
+        return $this->archived_at === null
+            && in_array($this->status, ['active', 'registration_open'], true)
             && $now->between($this->registration_start, $this->registration_end)
             && $this->registered_count < $this->quota;
     }

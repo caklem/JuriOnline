@@ -109,6 +109,11 @@ class AdminEventScopeTest extends TestCase
             $this->get($path)->assertForbidden();
         }
 
+        $this->get("/events/{$otherEvent->id}")
+            ->assertForbidden()
+            ->assertSee('Akses ditolak')
+            ->assertSee('Admin Event');
+
         $this->get('/my-events')->assertDontSee($otherEvent->name);
     }
 

@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>JuriOnline — {{ $authTitle ?? 'Akun' }}</title>
+    <title>JURI.ON — {{ $authTitle ?? 'Akun' }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|montserrat:600,700,800&display=swap" rel="stylesheet" />
+
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/brand/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/brand/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/brand/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="theme-color" content="#0B1F46">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/premium-global.css') }}?v={{ filemtime(public_path('css/premium-global.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/brand.css') }}?v={{ filemtime(public_path('css/brand.css')) }}">
 
     @stack('styles')
 </head>
@@ -20,19 +28,11 @@
 <body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
     <div class="grid min-h-screen lg:grid-cols-2">
         <div class="relative hidden overflow-hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-            <div class="pointer-events-none absolute inset-0" style="background-image: radial-gradient(ellipse at top right, rgba(99, 102, 241, 0.30), transparent 55%), radial-gradient(ellipse at bottom left, rgba(14, 165, 233, 0.16), transparent 50%);"></div>
-            <div class="pointer-events-none absolute inset-0 opacity-[0.07]" style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 64px 64px;"></div>
+            <div class="pointer-events-none absolute inset-0" style="background-image: radial-gradient(ellipse at top right, rgba(47, 128, 255, 0.28), transparent 55%), radial-gradient(ellipse at bottom left, rgba(11, 31, 70, 0.55), transparent 55%);"></div>
+            <div class="brand-pattern pointer-events-none absolute inset-0" aria-hidden="true"></div>
 
             <div class="relative">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 text-white">
-                    <span class="grid h-11 w-11 place-items-center rounded-xl bg-white/10 ring-1 ring-inset ring-white/10">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-6 w-6" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-                        </svg>
-                    </span>
-                    <span class="text-lg font-semibold tracking-tight">JuriOnline</span>
-                </a>
+                <x-brand.logo :href="route('home')" variant="dark" size="md" tile descriptor />
             </div>
 
             <div class="relative max-w-md">
@@ -64,25 +64,19 @@
                 </ul>
             </div>
 
-            <p class="relative text-xs text-slate-500">&copy; {{ date('Y') }} JuriOnline. Dibuat untuk kompetisi yang lebih adil.</p>
+            <p class="relative text-xs text-slate-500">&copy; {{ date('Y') }} JURI.ON. Dibuat untuk kompetisi yang lebih adil.</p>
         </div>
 
         <div class="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
             <div class="w-full max-w-md">
                 <div class="mb-8 flex items-center justify-center gap-3 lg:hidden">
-                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-950 text-white">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="h-5 w-5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M8 21h8M5 7h14M5 7l-3 6h6L5 7Zm14 0-3 6h6l-3-6Z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2 13a3 3 0 0 0 6 0M16 13a3 3 0 0 0 6 0" />
-                        </svg>
-                    </span>
-                    <span class="text-lg font-semibold tracking-tight text-slate-950">JuriOnline</span>
+                    <x-brand.logo :href="route('home')" size="md" />
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                     <div class="mb-6">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-600">JuriOnline</p>
-                        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{{ $authTitle ?? 'Akun JuriOnline' }}</h1>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-600">JURI.ON</p>
+                        <h1 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{{ $authTitle ?? 'Akun JURI.ON' }}</h1>
                         <p class="mt-2 text-sm leading-6 text-slate-600">{{ $authSubtitle ?? 'Kelola akses akun Anda dengan aman.' }}</p>
                     </div>
 
@@ -104,7 +98,7 @@
                     {{ $slot }}
                 </div>
 
-                <p class="mt-6 text-center text-xs text-slate-500">&copy; {{ date('Y') }} JuriOnline. Semua hak dilindungi.</p>
+                <p class="mt-6 text-center text-xs text-slate-500">&copy; {{ date('Y') }} JURI.ON. Semua hak dilindungi.</p>
             </div>
         </div>
     </div>

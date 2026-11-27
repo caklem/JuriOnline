@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header-premium">
     <h1>Profil Saya</h1>
-    <p>Kelola informasi akun, kata sandi, dan keamanan akun JuriOnline Anda.</p>
+    <p>Kelola informasi akun, kata sandi, dan keamanan akun JURI.ON Anda.</p>
 </div>
 
 <div>

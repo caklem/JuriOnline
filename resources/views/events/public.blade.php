@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Semua Event — JuriOnline')
+@section('title', 'Semua Event — JURI.ON')
 
 @php
 use Illuminate\Support\Facades\Storage;

@@ -277,7 +277,7 @@
                 // Clear existing and load template
                 const container = document.getElementById('criteriaContainer');
                 if (container && criteria.length > 0) {
-                    container.innerHTML = '';
+                    container.replaceChildren();
                     criteriaIndex = 0;
                     
                     criteria.forEach((criterion) => {
